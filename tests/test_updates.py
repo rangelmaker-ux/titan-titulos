@@ -1,4 +1,6 @@
 import contextlib
+import ast
+import base64
 import hashlib
 import importlib.util
 import io
@@ -8,6 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import zipfile
+import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('titan_update', ROOT/'src/titan_update.py')
@@ -34,6 +37,17 @@ class Updates(unittest.TestCase):
             self.assertNotIn(b'\r', z.read('Instalar_no_Mac.command'))
         with zipfile.ZipFile(self.dist/'Titan-Titles-Studio-Windows.zip') as z:
             self.assertIn('Instalar_Titan.ps1', z.namelist())
+            self.assertIn('Arquivos/caption-bin.drb', z.namelist())
+            self.assertIn('Arquivos/THIRD_PARTY_NOTICES.md', z.namelist())
+    def test_update_embeds_the_caption_bin_for_legacy_updaters(self):
+        tree=ast.parse((ROOT/'src/Titan Titles Studio.py').read_text(encoding='utf-8'))
+        constants={node.targets[0].id:ast.literal_eval(node.value) for node in tree.body
+                   if isinstance(node,ast.Assign) and len(node.targets)==1
+                   and isinstance(node.targets[0],ast.Name)
+                   and node.targets[0].id in ('_CAPTION_BIN_B64','_CAPTION_BIN_SHA256')}
+        bundled=zlib.decompress(base64.b64decode(constants['_CAPTION_BIN_B64']))
+        self.assertEqual(hashlib.sha256(bundled).hexdigest(),constants['_CAPTION_BIN_SHA256'])
+        self.assertEqual(bundled,(ROOT/'src/caption-bin.drb').read_bytes())
     def test_install_backup_preserves_other_plugins(self):
         root=self.base/'Fusion/Scripts/Edit'; root.mkdir(parents=True)
         (root/'Titan Studio.py').write_bytes(b'old script')

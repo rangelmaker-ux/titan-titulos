@@ -6,12 +6,41 @@ LANGUAGE_NAMES=('Português (Brasil)','English','Español')
 LANG='pt-BR'
 # Portuguese source | English | Spanish
 ROWS='''
+Buscar atualizações|Check for updates|Buscar actualizaciones
+Buscando atualizações…|Checking for updates…|Buscando actualizaciones…
+Seu Titan Titles Studio já está atualizado.|Your Titan Titles Studio is up to date.|Tu Titan Titles Studio está actualizado.
+Buscar novamente|Check again|Buscar de nuevo
+Não foi possível consultar o GitHub. Verifique a internet e tente novamente.|Could not reach GitHub. Check your internet and try again.|No se pudo conectar con GitHub. Revisa internet e inténtalo de nuevo.
+A versão existe, mas o pacote de atualização não está disponível.|The release exists, but its update package is unavailable.|La versión existe, pero su paquete de actualización no está disponible.
+ disponível. Clique em Baixar atualização.| available. Click Download update.| disponible. Haz clic en Descargar actualización.
+Baixar atualização|Download update|Descargar actualización
+Download concluído. Clique em Instalar.|Download complete. Click Install.|Descarga completa. Haz clic en Instalar.
+Atualizado. Feche e reabra o Titan Titles Studio.|Updated. Close and reopen Titan Titles Studio.|Actualizado. Cierra y vuelve a abrir Titan Titles Studio.
+Tentar novamente|Try again|Intentar de nuevo
+Versão|Version|Versión
 Efeito sonoro|Sound effect|Efecto sonoro
 Automático|Automatic|Automático
 Sem som|No sound|Sin sonido
 Impacto — Bounce|Impact — Bounce|Impacto — Bounce
 Cliques — Shake|Clicks — Shake|Clics — Shake
 Ar — Blur|Air — Blur|Aire — Blur
+Névoa — Motion Blur|Soft Air — Motion Blur|Aire suave — Motion Blur
+Slide|Slide|Deslizar
+Bounce|Bounce|Rebote
+Flicker|Flicker|Parpadeo
+Shake|Shake|Sacudida
+Blur|Blur|Desenfoque
+Motion Blur|Motion Blur|Desenfoque de movimiento
+Sons por animação|Sounds by animation|Sonidos por animación
+Sons por animação…|Sounds by animation…|Sonidos por animación…
+Escolha o efeito sonoro para cada animação. Aplicar atualiza todos os títulos com essa animação.|Choose a sound effect for each animation. Apply updates every title using that animation.|Elige un efecto de sonido para cada animación. Aplicar actualiza todos los títulos que la usan.
+Aplicar aos títulos|Apply to titles|Aplicar a los títulos
+Som aplicado a %d títulos.|Sound applied to %d titles.|Sonido aplicado a %d títulos.
+Nenhum título usa essa animação.|No titles use this animation.|Ningún título usa esta animación.
+Whoosh — Slide|Whoosh — Slide|Whoosh — Deslizar
+Glitch — Flicker|Glitch — Flicker|Glitch — Parpadeo
+Whoosh no Slide, impacto no Bounce, glitch no Flicker, cliques no Shake, ar no Blur e névoa no Motion Blur.|Whoosh for Slide, impact for Bounce, glitch for Flicker, clicks for Shake, air for Blur, and soft air for Motion Blur.|Whoosh para Slide, impacto para Bounce, glitch para Flicker, clics para Shake, aire para Blur y aire suave para Motion Blur.
+Não consegui carregar o template de legenda. Reinicie o Resolve e tente novamente.|Could not load the caption template. Restart Resolve and try again.|No se pudo cargar la plantilla de subtítulos. Reinicia Resolve e inténtalo de nuevo.
 LEGENDAS|CAPTIONS|SUBTÍTULOS
 TÍTULOS|TITLES|TÍTULOS
 ANIMAÇÕES|ANIMATIONS|ANIMACIONES

@@ -34,6 +34,15 @@ class Timeline:
         return True
     def DeleteTrack(self,kind,index):self.tracks.pop(index);return True
 
+class MacTimeline(Timeline):
+    def AddTrack(self,*args):
+        super().AddTrack(*args)
+        return None
+    def SetTrackName(self,kind,index,name):
+        raise RuntimeError('Resolve did not expose track renaming')
+    def GetTrackName(self,kind,index):
+        return self.names.get(index,'Audio '+str(index))
+
 class Pool:
     def __init__(self,timeline):
         self.timeline=timeline;self.clips=[];self.folders=[];self.current=self;self.fail=False
@@ -66,12 +75,19 @@ class Sounds(unittest.TestCase):
         events=sfx.plan_events([entry],lambda e:{'in':{'slide'},'out':{'blur'},'sfx_in':'glitch','sfx_out':'none'},20)
         self.assertEqual([(e['start'],e['effect']) for e in events],[(100,'glitch')])
         self.assertEqual(sfx.plan_events([entry],lambda e:{'in':set(),'sfx_in':'whoosh'},20),[])
-    def test_five_sounds_at_animation_start(self):
-        self.assertEqual(set(sfx.EFFECTS.values()),{'whoosh','bounce','glitch','shake','airy'})
+    def test_six_sounds_at_animation_start(self):
+        self.assertEqual(set(sfx.EFFECTS.values()),{'whoosh','bounce','glitch','shake','airy','motionblur'})
         for animation,effect in sfx.EFFECTS.items():
             entry={'uid':animation,'item':Clip(86400,86490)}
-            events=sfx.plan_events([entry],lambda e:{'in':{animation},'out':{animation}},12)
+            state={'in':set() if animation=='mblur' else {animation},
+                   'out':set() if animation=='mblur' else {animation},
+                   'mblur':animation=='mblur'}
+            events=sfx.plan_events([entry],lambda e:state,12)
             self.assertEqual([(e['start'],e['effect']) for e in events],[(86400,effect),(86477,effect)])
+    def test_motion_blur_has_an_automatic_sound_at_the_exact_start(self):
+        entry={'uid':'mblur','item':Clip(900,980)}
+        events=sfx.plan_events([entry],lambda e:{'in':set(),'out':set(),'mblur':True},12)
+        self.assertEqual([(e['start'],e['effect']) for e in events],[(900,'motionblur'),(967,'motionblur')])
     def test_audio_exact_length_and_quieter_exit(self):
         paths=[]
         for gain in (1,.5):
@@ -104,6 +120,17 @@ class Sounds(unittest.TestCase):
         pool.fail=True
         with self.assertRaises(RuntimeError):service.sync(project,timeline,[entry],state,21)
         self.assertEqual([c for clips in timeline.tracks.values() for c in clips],old)
+    def test_mac_style_track_api_without_boolean_return(self):
+        timeline=MacTimeline();pool=Pool(timeline);project=SimpleNamespace(GetMediaPool=lambda:pool,GetUniqueId=lambda:'project')
+        service=sfx.SoundEffects(ROOT/'src');service.cache=self.cache
+        entry={'uid':'title','item':Clip(100,160)}
+        self.assertEqual(service.sync(project,timeline,[entry],lambda e:{'in':{'slide'}},20),1)
+        self.assertEqual(len(timeline.tracks[2]),1)
+        flags={t:True for t in timeline.tracks}
+        timeline.GetIsTrackEnabled=lambda kind,t:flags[t]
+        timeline.SetTrackEnable=lambda kind,t,value:flags.__setitem__(t,value) or True
+        sfx.export_without_sfx(timeline,lambda:None)
+        self.assertTrue(all(flags.values()))
     def test_transcription_restores_track_states_on_error(self):
         timeline,pool,project,service,entry=self.fixture()
         service.sync(project,timeline,[entry],lambda e:{'in':{'slide'}},20)

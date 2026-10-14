@@ -9,6 +9,7 @@ def load(name):
     spec=importlib.util.spec_from_file_location(name,ROOT/'src'/(name+'.py'))
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
 locale=load('titan_locale')
+sfx=load('titan_sfx')
 
 class Features(unittest.TestCase):
     def tearDown(self):locale.configure('pt-BR')
@@ -44,6 +45,28 @@ class Features(unittest.TestCase):
         ns['on_pos'](instance)
         self.assertEqual(titles[0]['position'],(.6,.4))
         self.assertEqual(titles[1]['position'],(.8,.2));self.assertEqual(titles[2]['position'],(.8,.2))
+    def test_sound_mapping_apply_reaches_all_matching_timeline_titles(self):
+        source=ast.parse((ROOT/'src/Titan Titles Studio.py').read_text(encoding='utf-8'))
+        app=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='App')
+        node=next(n for n in app.body if isinstance(n,ast.FunctionDef) and n.name=='on_apply_sfx_map')
+        titles=[{'uid':'flicker-a'},{'uid':'flicker-b'},{'uid':'slide'}]
+        states={'flicker-a':{'in':{'flicker'},'out':set(),'sfx_in':'auto','sfx_out':'auto'},
+                'flicker-b':{'in':set(),'out':{'flicker'},'sfx_in':'auto','sfx_out':'auto'},
+                'slide':{'in':{'slide'},'out':set(),'sfx_in':'auto','sfx_out':'auto'}}
+        applied=[];saved=[];sync=[]
+        ns={'_sound_module':sfx,'fusion':SimpleNamespace(SetData=lambda *args:saved.append(args)),
+            'get_timeline':lambda:(object(),object()),'find_textplus_under_playhead':lambda tl,all_titles=False:titles,
+            'tr':locale.translate}
+        exec(compile(ast.Module(body=[node],type_ignores=[]),'<sound-map>','exec'),ns)
+        instance=SimpleNamespace(_busy=False,sfx_map_items={'sfx_map_flicker':SimpleNamespace(CurrentIndex=sfx.CHOICES.index('shake')),
+            'sfx_map_status':SimpleNamespace(Text='')},sfx_map_window=object(),refresh=lambda **kw:None,
+            _anim_carregar=lambda entry:states[entry['uid']],_anim_salvar=lambda entry,state:saved.append(entry['uid']),
+            _sync_sounds=lambda entries:sync.extend(entries),sync_buttons=lambda:None,_gstatus=lambda text:None)
+        ns['on_apply_sfx_map'](instance,'flicker')
+        self.assertEqual(states['flicker-a']['sfx_in'],'shake')
+        self.assertEqual(states['flicker-b']['sfx_out'],'shake')
+        self.assertEqual(states['slide']['sfx_in'],'auto')
+        self.assertEqual([entry['uid'] for entry in sync],['flicker-a','flicker-b'])
     def test_about_links_and_clean_main_header(self):
         source=ast.parse((ROOT/'src/Titan Titles Studio.py').read_text(encoding='utf-8'))
         app=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='App')

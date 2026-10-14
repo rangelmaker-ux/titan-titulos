@@ -32,6 +32,8 @@ class MacInstaller(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in (self.fusion/'Scripts').rglob('*.py')),['Other Plugin.py','Titan Studio.py'])
         self.assertEqual((self.edit/'Other Plugin.py').read_text(),'keep')
         self.assertEqual((self.fusion/'TitanTitlesStudio/installed-version.txt').read_text().strip(),self.version)
+        self.assertEqual((self.fusion/'TitanTitlesStudio/caption-bin.drb').read_bytes(),(ROOT/'src/caption-bin.drb').read_bytes())
+        self.assertTrue((self.fusion/'TitanTitlesStudio/THIRD_PARTY_NOTICES.md').is_file())
         self.assertEqual((self.edit/'Titan Studio.py').read_bytes(),(ROOT/'src/Titan Titles Studio.py').read_bytes())
         store=container/'Data/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion'
         self.assertTrue((store/'Scripts/Edit/Titan Studio.py').exists())

@@ -3,7 +3,7 @@ set -euo pipefail
 DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 TARGET="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
 STORE="$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp/Data/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
-printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.3.3\n  TITÂNIO & AZUL ELÉTRICO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
+printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.3.5\n  TITÂNIO & AZUL ELÉTRICO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
 printf '\nLayouts, tipografia e movimento para DaVinci Resolve.\nAtualizações pelo GitHub com backup automático.\n\n'
 ACTION=$(/usr/bin/osascript <<'APPLESCRIPT'
 button returned of (display dialog "Seu próximo título começa aqui.\n\nFeche o Titan antes de instalar ou remover.\nAtualizações pelo GitHub com backup automático." with title "Titan Titles Studio" buttons {"Cancelar", "Remover", "Instalar"} default button "Instalar" cancel button "Cancelar")
@@ -11,7 +11,7 @@ APPLESCRIPT
 ) || exit 0
 CLEAN=no
 if [ "$ACTION" = "Instalar" ]; then
-    for part in "Titan Titles Studio.py" "titan_update.py" "titan_locale.py" "titan_sfx.py" "icons" "sfx"; do
+    for part in "Titan Titles Studio.py" "titan_update.py" "titan_locale.py" "titan_sfx.py" "caption-bin.drb" "THIRD_PARTY_NOTICES.md" "icons" "sfx"; do
         if [ ! -e "$DIR/$part" ]; then
             /usr/bin/osascript -e 'display alert "Titan Titles Studio" message "Pacote incompleto. Extraia o ZIP inteiro antes de instalar." as critical'
             exit 1
@@ -50,7 +50,7 @@ install_target() {
         rm -rf "$storage/TitanTitlesStudio"
     fi
     if [ "$ACTION" = "Instalar" ]; then
-        if ! (mkdir -p "$storage/TitanTitlesStudio" && cp -R "$DIR/icons" "$storage/TitanTitlesStudio/" && cp "$DIR/titan_update.py" "$DIR/titan_locale.py" "$DIR/titan_sfx.py" "$storage/TitanTitlesStudio/" && cp -R "$DIR/sfx" "$storage/TitanTitlesStudio/" && cp "$DIR/Titan Titles Studio.py" "$target/Titan Studio.py"); then
+        if ! (mkdir -p "$storage/TitanTitlesStudio" && cp -R "$DIR/icons" "$storage/TitanTitlesStudio/" && cp "$DIR/titan_update.py" "$DIR/titan_locale.py" "$DIR/titan_sfx.py" "$DIR/THIRD_PARTY_NOTICES.md" "$storage/TitanTitlesStudio/" && cp "$DIR/caption-bin.drb" "$storage/TitanTitlesStudio/" && cp -R "$DIR/sfx" "$storage/TitanTitlesStudio/" && cp "$DIR/Titan Titles Studio.py" "$target/Titan Studio.py"); then
             rm -f "$target/Titan Studio.py"
             rm -rf "$storage/TitanTitlesStudio"
             [ ! -f "$backup/Titan Studio.py" ] || cp "$backup/Titan Studio.py" "$target/"

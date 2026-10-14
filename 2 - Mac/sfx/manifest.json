@@ -35,6 +35,14 @@
       "trim_start": 0.15,
       "peak_dbfs": -11.057558906914704,
       "use": "shake"
+    },
+    "motionblur": {
+      "source": "Derived from the authorized airy effect included with Titan Titles Studio",
+      "duration": 0.5,
+      "trim_start": 0.0,
+      "peak_dbfs": -11.02,
+      "processing": "High-pass 180 Hz, low-pass 2800 Hz, short fade-out, and normalized level for a soft motion-blur accent",
+      "use": "motionblur"
     }
   }
 }

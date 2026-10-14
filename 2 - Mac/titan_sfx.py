@@ -9,16 +9,20 @@ import tempfile
 import wave
 
 PREFIX='TitanSFX:'
-CHOICES=('auto','whoosh','bounce','glitch','shake','airy','none')
-LABELS=('Automático','Whoosh — Slide','Impacto — Bounce','Glitch — Flicker','Cliques — Shake','Ar — Blur','Sem som')
-EFFECTS={'flicker':'glitch','shake':'shake','bounce':'bounce','slide':'whoosh','blur':'airy'}
+CHOICES=('auto','whoosh','bounce','glitch','shake','airy','motionblur','none')
+LABELS=('Automático','Whoosh — Slide','Impacto — Bounce','Glitch — Flicker','Cliques — Shake','Ar — Blur','Névoa — Motion Blur','Sem som')
+EFFECTS={'flicker':'glitch','shake':'shake','bounce':'bounce','slide':'whoosh','blur':'airy','mblur':'motionblur'}
+ANIMATION_SOUNDS=(('slide','Slide'),('bounce','Bounce'),('flicker','Flicker'),
+                  ('shake','Shake'),('blur','Blur'),('mblur','Motion Blur'))
 
 def values(collection):
     return list(collection.values()) if hasattr(collection,'values') else list(collection or [])
 
-def effect_for(effects):
-    for animation in ('flicker','shake','bounce','slide','blur'):
+def effect_for(effects, motion_blur=False):
+    for animation in ('flicker','shake','bounce','slide'):
         if animation in effects:return EFFECTS[animation]
+    if motion_blur:return EFFECTS['mblur']
+    if 'blur' in effects:return EFFECTS['blur']
     return None
 
 def plan_events(entries,states,duration):
@@ -33,8 +37,9 @@ def plan_events(entries,states,duration):
         span=min(length,max(2,min(int(duration),max(2,length//2)))+1)
         for side in ('in','out'):
             choice=state.get('sfx_'+side,'auto')
-            effect=(effect_for(state.get(side,set())) if choice=='auto' else
-                    choice if choice in EFFECTS.values() and state.get(side,set()) else None)
+            active=bool(state.get(side,set()) or state.get('mblur'))
+            effect=(effect_for(state.get(side,set()),state.get('mblur',False)) if choice=='auto' else
+                    choice if choice in EFFECTS.values() and active else None)
             if effect:
                 events.append({'uid':str(entry['uid']),'side':side,'effect':effect,
                     'start':start if side=='in' else end-span,'frames':span,
@@ -71,7 +76,9 @@ def export_without_sfx(timeline,export):
     try:
         for track in range(1,int(timeline.GetTrackCount('audio'))+1):
             clips=values(timeline.GetItemListInTrack('audio',track))
-            if str(timeline.GetTrackName('audio',track) or '').startswith('Titan SFX ') and clips and all(owned_uid(c) for c in clips):
+            is_titan_track=(str(timeline.GetTrackName('audio',track) or '').startswith('Titan SFX ')
+                            or bool(clips and all(owned_uid(c) for c in clips)))
+            if is_titan_track and clips and all(owned_uid(c) for c in clips):
                 if timeline.GetIsTrackEnabled('audio',track):
                     if not timeline.SetTrackEnable('audio',track,False):raise RuntimeError('Could not mute Titan sound track.')
                     muted.append(track)
@@ -161,10 +168,14 @@ class SoundEffects:
                 start,end=event['start'],event['start']+event['frames']
                 track=next((t for t,ranges in sorted(lanes.items()) if all(end<=a or start>=b for a,b in ranges)),None)
                 if track is None:
-                    if not timeline.AddTrack('audio','stereo'):raise RuntimeError('Could not add audio track.')
+                    before=int(timeline.GetTrackCount('audio'))
+                    try:timeline.AddTrack('audio','stereo')
+                    except TypeError:timeline.AddTrack('audio')
                     track=int(timeline.GetTrackCount('audio'))
+                    if track<=before:raise RuntimeError('O DaVinci Resolve não conseguiu criar uma faixa de áudio.')
                     new_tracks.append(track)
-                    if not timeline.SetTrackName('audio',track,'Titan SFX '+str(track)):raise RuntimeError('Could not name audio track.')
+                    try:timeline.SetTrackName('audio',track,'Titan SFX '+str(track))
+                    except Exception:pass
                     lanes[track]=[]
                 try:source_fps=float(media.GetClipProperty('FPS') or fps)
                 except (TypeError,ValueError):source_fps=fps
@@ -175,7 +186,7 @@ class SoundEffects:
                 made.extend(result)
                 if len(result)!=1:raise RuntimeError('Could not insert sound effect.')
                 clip=result[0]
-                if int(clip.GetStart())!=start or int(clip.GetEnd())!=end:
+                if int(round(float(clip.GetStart())))!=start or int(round(float(clip.GetEnd())))!=end:
                     raise RuntimeError('Resolve inserted sound outside its animation window.')
                 metadata=PREFIX+json.dumps({'uid':event['uid'],'side':event['side']},separators=(',',':'))
                 if not clip.AddMarker(0,'Blue','Titan SFX','',1,metadata):raise RuntimeError('Could not mark sound ownership.')

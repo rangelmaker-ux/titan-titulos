@@ -9,6 +9,8 @@ for folder in ('1 - Windows/Arquivos','2 - Mac'):
         shutil.copy2(ROOT/'src'/name,ROOT/folder/name)
     for name in ('icons','sfx'):
         shutil.copytree(ROOT/'src'/name,ROOT/folder/name,dirs_exist_ok=True)
+    shutil.copy2(ROOT/'src'/'caption-bin.drb',ROOT/folder/'caption-bin.drb')
+    shutil.copy2(ROOT/'THIRD_PARTY_NOTICES.md',ROOT/folder/'THIRD_PARTY_NOTICES.md')
 version=(ROOT/'VERSION').read_text().strip()
 for relative,encoding in (('1 - Windows/Instalar_Titan.ps1','utf-8-sig'),('2 - Mac/Instalar_no_Mac.command','utf-8')):
     path=ROOT/relative

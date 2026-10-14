@@ -30,6 +30,8 @@ jobs:
           FUSION="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
           test -f "$FUSION/Scripts/Edit/Titan Studio.py"
           test -f "$FUSION/TitanTitlesStudio/titan_update.py"
+          test -f "$FUSION/TitanTitlesStudio/caption-bin.drb"
+          test -f "$FUSION/TitanTitlesStudio/THIRD_PARTY_NOTICES.md"
           test "$(find "$FUSION/Scripts" -name '*.py' | wc -l | tr -d ' ')" = 1
           cmp 'src/Titan Titles Studio.py' "$FUSION/Scripts/Edit/Titan Studio.py"
           sudo installer -pkg "dist/Titan-Titles-Studio-Mac-$(cat VERSION).pkg" -target /

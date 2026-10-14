@@ -1,5 +1,5 @@
-Titan Titles Studio v3.3.3
+Titan Titles Studio v3.3.5
 
-Windows e Mac mantêm a interface responsiva durante a transcrição. O estado mostra o tempo decorrido e informa erros de geração em vez de deixar a etapa parecer congelada. A geração bloqueia acionamentos duplicados e registra somente metadados de duração e contagem, sem registrar voz ou transcrição.
+The Windows and macOS packages now include the Basic Template bin required for caption generation. The updater also restores this resource on existing installations, and generation reports a clear recovery message if Resolve rejects the import.
 
-Sons de entrada/saída sincronizados com os títulos selecionados ao definir animações. A escolha manual pode ser preparada antes da animação; ao ativá-la, o efeito entra no frame inicial. Erros de importação e inserção agora aparecem no status.
+The About panel includes a manual update check. The animation panel adds a per-animation sound mapping window with an Apply action for matching titles across six styles: Slide, Bounce, Flicker, Shake, Blur, and Motion Blur. Motion Blur has its own softer sound derived from the authorized airy effect. Mac audio-track creation now handles Resolve non-boolean API returns and keeps sound clips frame-aligned.

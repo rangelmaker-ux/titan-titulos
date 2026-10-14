@@ -24,7 +24,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
    <Button x:Name="Remove" Content="Remover Titan" Height="40" Background="#1E293B" Foreground="#E2E8F0" BorderThickness="0"/>
    <Button x:Name="Install" Grid.Column="2" Content="Instalar / atualizar" Height="40" Background="#38BDF8" Foreground="#0B0F17" FontWeight="Bold" BorderThickness="0"/>
   </Grid>
-  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.3.3" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
+  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.3.5" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
  </Grid>
 </Window>
 '@
@@ -84,7 +84,7 @@ function Move-LegacyTitan([string]$backup) {
 $window.FindName('Install').Add_Click({
     $backup = $null
     try {
-        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','icons','sfx')) {
+        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','caption-bin.drb','THIRD_PARTY_NOTICES.md','icons','sfx')) {
             if (-not (Test-Path -LiteralPath (Join-Path $payload $part))) { throw 'Pacote incompleto. Extraia o ZIP inteiro antes de instalar.' }
         }
         $backup = Backup-Titan
@@ -97,6 +97,8 @@ $window.FindName('Install').Add_Click({
             Copy-Item -LiteralPath (Join-Path $payload $module) -Destination $resources -Force
         }
         Copy-Item -LiteralPath (Join-Path $payload 'sfx') -Destination $resources -Recurse -Force
+        Copy-Item -LiteralPath (Join-Path $payload 'caption-bin.drb') -Destination $resources -Force
+        Copy-Item -LiteralPath (Join-Path $payload 'THIRD_PARTY_NOTICES.md') -Destination $resources -Force
         Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination (Join-Path $target 'Titan Studio.py') -Force
         Move-LegacyTitan $backup
         $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Studio.'

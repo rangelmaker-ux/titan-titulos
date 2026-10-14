@@ -9,7 +9,7 @@ VERSION="$5"
 case "$USER_HOME" in /Users/*) ;; *) echo 'Conta de usuário inválida.' >&2; exit 1;; esac
 case "$USER_UID" in ''|*[!0-9]*) exit 1;; esac
 [ "$USER_UID" -ge 501 ] || { echo 'Não instale na conta root ou em uma conta de sistema.' >&2; exit 1; }
-for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py icons sfx; do
+for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py caption-bin.drb THIRD_PARTY_NOTICES.md icons sfx; do
     [ -e "$PAYLOAD/$part" ] || { echo "Pacote incompleto: $part" >&2; exit 1; }
 done
 assert_path() {
@@ -93,6 +93,8 @@ for target in "${TARGETS[@]}"; do
     /usr/bin/install -m 644 "$PAYLOAD/titan_update.py" "$stage/TitanTitlesStudio/titan_update.py"
     /usr/bin/install -m 644 "$PAYLOAD/titan_locale.py" "$stage/TitanTitlesStudio/titan_locale.py"
     /usr/bin/install -m 644 "$PAYLOAD/titan_sfx.py" "$stage/TitanTitlesStudio/titan_sfx.py"
+    /usr/bin/install -m 644 "$PAYLOAD/caption-bin.drb" "$stage/TitanTitlesStudio/caption-bin.drb"
+    /usr/bin/install -m 644 "$PAYLOAD/THIRD_PARTY_NOTICES.md" "$stage/TitanTitlesStudio/THIRD_PARTY_NOTICES.md"
     /usr/bin/ditto "$PAYLOAD/sfx" "$stage/TitanTitlesStudio/sfx"
     /usr/bin/install -m 644 "$PAYLOAD/Titan Titles Studio.py" "$stage/Titan Studio.py"
     printf '%s\n' "$VERSION" > "$stage/TitanTitlesStudio/installed-version.txt"

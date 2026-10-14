@@ -55,25 +55,33 @@ def open_url(url):
     return opener.open(urllib.request.Request(allowed_url(url), headers={
         'User-Agent': 'Titan-Titles-Studio-Updater', 'Accept': 'application/vnd.github+json'}), timeout=10)
 
-def check(current):
-    """Offline and rate limits must never prevent the plugin from opening."""
+def check_status(current):
+    """Return an explicit updater state for manual checks and clear UI feedback."""
     try:
         with open_url(API) as response:
             raw = response.read(1024 * 1024 + 1)
         if len(raw) > 1024 * 1024:
-            return None
+            return ('error', None)
         release = json.loads(raw)
         tag = release.get('tag_name', '')
-        if release.get('draft') or release.get('prerelease') or version(tag) <= version(current):
-            return None
+        if release.get('draft') or release.get('prerelease'):
+            return ('error', None)
+        if version(tag) <= version(current):
+            return ('current', None)
         assets = {a['name']: a for a in release.get('assets', [])}
         asset = assets.get(ASSET)
         if not asset or not re.fullmatch(r'sha256:[0-9a-f]{64}', asset.get('digest') or ''):
-            return None
-        return (tag, {'url': allowed_url(asset['browser_download_url']),
+            return ('unavailable', None)
+        info = (tag, {'url': allowed_url(asset['browser_download_url']),
                       'sha256': asset['digest'][7:], 'version': tag}, 'Atualização pelo GitHub')
+        return ('available', info)
     except Exception:
-        return None
+        return ('error', None)
+
+def check(current):
+    """Backward-compatible silent check used when the plugin starts."""
+    status, info = check_status(current)
+    return info if status == 'available' else None
 
 def validate_package(path, expected_version):
     with zipfile.ZipFile(path) as archive:
@@ -99,7 +107,7 @@ def validate_package(path, expected_version):
                 ast.parse(content.decode('utf-8'))
             data[name] = content
         data.update(read_resource_bundle(data['titan_update.py']))
-        if not {'titan_locale.py','titan_sfx.py','sfx/whoosh.wav','sfx/glitch.wav'} <= set(data):
+        if not {'titan_locale.py','titan_sfx.py','sfx/whoosh.wav','sfx/glitch.wav','sfx/motionblur.wav'} <= set(data):
             raise ValueError('Pacote de recursos incompleto.')
         return data
 
