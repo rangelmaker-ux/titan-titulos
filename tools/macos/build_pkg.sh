@@ -34,9 +34,12 @@ cat > "$STAGE/Distribution.xml" <<XML
 </installer-gui-script>
 XML
 pkgbuild --nopayload --scripts "$STAGE/scripts" --identifier com.rangelmaker.titantitlesstudio --version "$VERSION" "$STAGE/TitanComponent.pkg"
-ARGS=()
-if [ -n "${TITAN_INSTALLER_IDENTITY:-}" ]; then ARGS+=(--sign "$TITAN_INSTALLER_IDENTITY" --timestamp); fi
-productbuild --distribution "$STAGE/Distribution.xml" --resources "$STAGE/ui" --package-path "$STAGE" "${ARGS[@]}" "$ROOT/dist/Titan-Titles-Studio-Mac-$VERSION.pkg"
+if [ -n "${TITAN_INSTALLER_IDENTITY:-}" ]; then
+    productbuild --distribution "$STAGE/Distribution.xml" --resources "$STAGE/ui" --package-path "$STAGE" --sign "$TITAN_INSTALLER_IDENTITY" --timestamp "$ROOT/dist/Titan-Titles-Studio-Mac-$VERSION.pkg"
+else
+    productbuild --distribution "$STAGE/Distribution.xml" --resources "$STAGE/ui" --package-path "$STAGE" "$ROOT/dist/Titan-Titles-Studio-Mac-$VERSION.pkg"
+fi
+test -s "$ROOT/dist/Titan-Titles-Studio-Mac-$VERSION.pkg"
 if [ -n "${TITAN_NOTARY_PROFILE:-}" ]; then
     [ -n "${TITAN_INSTALLER_IDENTITY:-}" ] || { echo 'Notarização exige assinatura Developer ID Installer.' >&2; exit 1; }
     xcrun notarytool submit "$ROOT/dist/Titan-Titles-Studio-Mac-$VERSION.pkg" --keychain-profile "$TITAN_NOTARY_PROFILE" --wait
