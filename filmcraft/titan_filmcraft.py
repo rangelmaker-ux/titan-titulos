@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 import wave
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 TICKS = 254016000000
 PORT = 19876
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]/'src'))
@@ -284,6 +284,15 @@ class Titan:
             raise ValueError('Há legendas sobrepostas. Corrija os tempos antes de gerar.')
         sequence = self.command('sequence.inspect'); sequence_id = sequence['id']
         settings = sequence['settings']; fps = settings['frame_rate']['num']/settings['frame_rate']['den']
+        # Round shared boundaries once. Independently rounding the start and
+        # duration can extend one clip a frame into the next ("V4 is not free").
+        frame_ticks=TICKS*settings['frame_rate']['den']/settings['frame_rate']['num']
+        def snap(seconds):return round(round(float(seconds)*fps)*frame_ticks)
+        boundaries=[(snap(block['start']),snap(block['end'])) for block in blocks]
+        for index,(start,end) in enumerate(boundaries):
+            if index+1<len(boundaries):end=min(end,boundaries[index+1][0])
+            if end<=start:raise ValueError('Uma legenda tem duração inferior a um quadro. Ajuste seus tempos.')
+            boundaries[index]=(start,end)
         w,h = settings['width'], settings['height']; size=float(size)*h/1080; base_y=float(y)*h
         _, support_track = self.track('video', 'Titan • Legendas', sequence)
         sequence = self.command('sequence.inspect')
@@ -295,7 +304,7 @@ class Titan:
                 if self.command('sequence.inspect')['id'] != sequence_id:
                     raise ValueError('A sequência ativa mudou durante a geração.')
                 self.progress('Criando legenda %d de %d…' % (n+1,len(blocks)))
-                a,b = ticks(block['start']),ticks(block['end']); hero = highlight(block)
+                a,b = boundaries[n]; hero = highlight(block)
                 dynamic = hero is not None and mode != 'common' and (mode=='dynamic' or n%3==2 and block['start']-last_dynamic>=3)
                 clean=block['text'].replace('[','').replace(']','')
                 if not dynamic:
@@ -312,7 +321,7 @@ class Titan:
                             generated.append(clip);support_clip=clip
                         self.command('clip.rename',clip=clip,name='TitanFC[none/-1]@%.3f %s'%(y,' '.join((before,after))))
                 # Highlight starts at its own spoken timestamp, never at every word.
-                at=max(a,min(ticks(at),b-ticks(1/fps)))
+                at=max(a,min(snap(at),b-round(frame_ticks)))
                 clip=self.text(word,at,b,hero_track,[w*.5,base_y],font,style,size*1.2,accent,w*.85)
                 generated.append(clip)
                 self.command('clip.rename',clip=clip,name='TitanFC[%s/0]@%.3f %s'%(animation,y,word))

@@ -103,6 +103,18 @@ class Native(unittest.TestCase):
         self.assertEqual([c['clip'] for t in sequence['video'] for c in t['items']],original)
         self.assertFalse(any(t['items'] for t in sequence['audio']))
 
+    def test_adjacent_fractional_word_boundaries_and_repeated_generation(self):
+        for rate in (24,29.97,60):
+            self.bridge.execute('file.newSequence',name='Adjacent',fps=rate,video=3,audio=3)
+            blocks=[{'start':.19,'end':2.85,'text':'Create beautiful titles.'},
+                    {'start':2.85,'end':6.12,'text':'Highlight important words.'},
+                    {'start':6.12,'end':9.23,'text':'Keep sound effects subtle.'}]
+            for mode in ('common','dynamic','mixed'):
+                for repeat in range(2):self.titan.generate(blocks,mode=mode,gain=0)
+            for lane in self.bridge.execute('sequence.inspect')['video']:
+                clips=sorted(lane['items'],key=lambda c:c['start'])
+                for first,second in zip(clips,clips[1:]):self.assertLessEqual(first['end'],second['start'])
+
 class Planning(unittest.TestCase):
     def test_srt_preserves_text(self):
         blocks=fc.parse_srt('1\n00:00:01,000 --> 00:00:03,000\nOlá [mundo]!\n')

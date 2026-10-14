@@ -1,10 +1,10 @@
-# Titan Titles Studio para FilmCraft 1.0.0
+# Titan Titles Studio para FilmCraft 1.0.1
 
 Versão para Windows 10/11 x64, validada com FilmCraft 0.7.2. Não requer Python, DaVinci Resolve ou alteração dos arquivos do FilmCraft. É uma janela própria conectada ao editor, não um painel interno.
 
 ## Instalar e conectar
 
-1. Execute `Instalar-Titan-FilmCraft-1.0.0.exe` e clique em **Instalar / Atualizar**. O pacote ainda não possui assinatura digital; o Windows pode apresentar um aviso ao executar um aplicativo baixado. Confira o SHA256 fornecido junto do instalador.
+1. Execute `Instalar-Titan-FilmCraft-1.0.1.exe` e clique em **Instalar / Atualizar**. O pacote ainda não possui assinatura digital; o Windows pode apresentar um aviso ao executar um aplicativo baixado. Confira o SHA256 fornecido junto do instalador.
 2. Salve seu projeto e feche o FilmCraft que estava aberto.
 3. Abra o atalho **Titan Titles Studio - FilmCraft** e clique em **Abrir FilmCraft com Titan**.
 4. No FilmCraft, abra seu projeto e a sequência desejada. No Titan, clique em **Conectar**.
