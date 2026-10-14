@@ -1,4 +1,4 @@
-Titan Titles Studio v3.3.6
+Titan Titles Studio v3.3.7
 
 The Windows and macOS packages now include the Basic Template bin required for caption generation. The updater also restores this resource on existing installations, and generation reports a clear recovery message if Resolve rejects the import.
 

@@ -18,7 +18,7 @@ class MacInstaller(unittest.TestCase):
         self.edit.mkdir(parents=True)
         self.version=(ROOT/'VERSION').read_text().strip()
     def run_engine(self,script=None,payload=None):
-        return subprocess.run(['/bin/bash',str(script or ROOT/'tools/macos/install_engine.sh'),str(payload or ROOT/'src'),str(self.home),str(os.getuid()),str(os.getgid()),self.version],capture_output=True,text=True)
+        return subprocess.run(['/bin/bash',str(script or ROOT/'tools/macos/install_engine.sh'),str(payload or ROOT/'2 - Mac'),str(self.home),str(os.getuid()),str(os.getgid()),self.version],capture_output=True,text=True)
     def test_install_reinstall_and_old_names(self):
         for name in ('Titan Titles Studio.py','Titan Studio Backup.py','Titan Titulo Studio.py','Titan Títulos Studio.py','Titan Update.py'):
             (self.edit/name).write_text('old')
