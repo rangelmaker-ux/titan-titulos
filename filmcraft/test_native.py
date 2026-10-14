@@ -56,7 +56,7 @@ class Native(unittest.TestCase):
             self.assertEqual(hero['start'],sound['start']);self.assertEqual(hero['link'],sound['link'])
             self.assertLessEqual(sound['duration']/fc.TICKS,.35)
         # Both static support layers coexist, instead of one overwriting the other.
-        supports=[c for t in sequence['video'] for c in t['items'] if fc.TITLE.match(c['name'])[1]=='none']
+        supports=[c for t in sequence['video'] for c in t['items'] if fc.TITLE.match(c['name'])[1]=='support']
         self.assertEqual(len(supports),6)
         for support in supports:self.assertEqual(len(self.bridge.execute('graphics.list',clip=support['clip'])['layers']),2)
         self.assertEqual(self.titan.apply_sounds({k:'glitch' for k in fc.ANIMATIONS},.2),6)
@@ -124,6 +124,22 @@ class Native(unittest.TestCase):
             end=cursor+rng.uniform(.2,1.3)
             blocks.append({'start':cursor,'end':end,'text':'teste de limites'});cursor=end
         self.assertEqual(self.titan.generate(blocks,mode='common',gain=0)['titles'],70)
+
+    def test_separate_fonts_and_horizontal_position(self):
+        self.titan.generate([{'start':0,'end':3,'text':'antes [destaque] depois'}],mode='dynamic',x=.4,
+                            font='Arial',support_font='Courier New',gain=0)
+        sequence=self.bridge.execute('sequence.inspect')
+        clips=[c for t in sequence['video'] for c in t['items']]
+        self.assertEqual(self.titan.position(.7,True,x=.6),2)
+        self.assertEqual(self.titan.style_titles('Georgia','Bold','#ffffff','#38bdf8','Arial','Regular',True),2)
+        for clip in clips:
+            updated=next(c for t in self.bridge.execute('sequence.inspect')['video'] for c in t['items'] if c['clip']==clip['clip'])
+            motion=next(e for e in updated['effects'] if e['effect']=='motion')
+            self.assertIn('1344.0',motion['params']['position']['value'])
+            hero=fc.TITLE.match(clip['name'])[1]=='slide'
+            for effect in [e for e in updated['effects'] if e['effect']=='graphic_text']:
+                self.assertIn('Georgia' if hero else 'Arial',effect['params']['font']['value'])
+                if hero:self.assertGreater(effect['params']['opacity']['keyframes'],0)
 
 class Planning(unittest.TestCase):
     def test_srt_preserves_text(self):

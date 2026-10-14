@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 import wave
 
-VERSION = '1.0.1'
+VERSION = '1.1.0'
 TICKS = 254016000000
 PORT = 19876
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]/'src'))
@@ -26,7 +26,7 @@ DATA = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'TitanFilmCraft'
 ANIMATIONS = {'slide': 'Slide', 'bounce': 'Bounce', 'flicker': 'Flicker',
               'shake': 'Shake', 'blur': 'Blur', 'mblur': 'Motion Blur'}
 SOUNDS = dict(zip(ANIMATIONS, ('whoosh', 'bounce', 'glitch', 'shake', 'airy', 'motionblur')))
-TITLE = re.compile(r'^TitanFC\[([a-z]+)/(-?\d+)\]@([0-9.]+) ')
+TITLE = re.compile(r'^TitanFC\[([a-z]+)/(-?\d+)\]@([0-9.]+)(?::([0-9.]+))? ')
 MODEL_SHA = '1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b'
 STOP = set('a o as os um uma de da do das dos e ou que para por com em no na nos nas se ao eu voce você ele ela isso isto the a an and or to of in on is it you we i for with el la los las un una de y o en que por para con'.split())
 
@@ -272,7 +272,8 @@ class Titan:
         return track['id'], updated[kind].index(track)
 
     def generate(self, blocks, mode='mixed', animation='slide', font='Arial', style='Bold',
-                 size=80, color='#ffffff', accent='#00b7ff', y=.8, gain=.35, sounds=None):
+                 size=80, color='#ffffff', accent='#00b7ff', y=.8, gain=.35, sounds=None,
+                 x=.5,support_font=None,support_style=None):
         if mode not in ('common','dynamic','mixed') or animation not in ANIMATIONS:
             raise ValueError('Modo ou animação inválidos.')
         if not blocks:
@@ -308,23 +309,23 @@ class Titan:
                 dynamic = hero is not None and mode != 'common' and (mode=='dynamic' or n%3==2 and block['start']-last_dynamic>=3)
                 clean=block['text'].replace('[','').replace(']','')
                 if not dynamic:
-                    clip = self.text(clean,a,b,support_track,[w*.5,base_y],font,style,size,color,w*.85)
+                    clip = self.text(clean,a,b,support_track,[w*x,base_y],font,style,size,accent,w*.85)
                     generated.append(clip)
-                    self.command('clip.rename',clip=clip,name='TitanFC[none/-1]@%.3f %s'%(y,clean))
+                    self.command('clip.rename',clip=clip,name='TitanFC[none/-1]@%.3f:%.3f %s'%(y,x,clean))
                     continue
                 before,word,after,at = hero
                 support_clip=None
                 for text, line_y in ((before,base_y-size*1.1),(after,base_y+size*1.1)):
                     if text:
-                        clip=self.text(text,a,b,support_track,[w*.5,line_y],font,style,size*.7,color,w*.85,existing=support_clip)
+                        clip=self.text(text,a,b,support_track,[w*x,line_y],support_font or font,support_style or style,size*.7,color,w*.85,existing=support_clip)
                         if support_clip is None:
                             generated.append(clip);support_clip=clip
-                        self.command('clip.rename',clip=clip,name='TitanFC[none/-1]@%.3f %s'%(y,' '.join((before,after))))
+                        self.command('clip.rename',clip=clip,name='TitanFC[support/-1]@%.3f:%.3f %s'%(y,x,' '.join((before,after))))
                 # Highlight starts at its own spoken timestamp, never at every word.
                 at=max(a,min(snap(at),b-round(frame_ticks)))
-                clip=self.text(word,at,b,hero_track,[w*.5,base_y],font,style,size*1.2,accent,w*.85)
+                clip=self.text(word,at,b,hero_track,[w*x,base_y],font,style,size*1.2,accent,w*.85)
                 generated.append(clip)
-                self.command('clip.rename',clip=clip,name='TitanFC[%s/0]@%.3f %s'%(animation,y,word))
+                self.command('clip.rename',clip=clip,name='TitanFC[%s/0]@%.3f:%.3f %s'%(animation,y,x,word))
                 self.animate(clip,0,animation,at,b,fps);last_dynamic=block['start']
                 effect=(sounds or {}).get(animation,SOUNDS[animation])
                 if gain>0 and effect!='none' and at/TICKS-last_sound>=2:
@@ -412,19 +413,34 @@ class Titan:
                 self.command('sequence.deleteTrack',track=lane['id'])
         return len(created)
 
-    def position(self,y,all_titles=False):
+    def position(self,y,all_titles=False,x=.5):
         sequence=self.command('sequence.inspect');selected=set(sequence['selection']);count=0
         for track in sequence['video']:
             for clip in track['items']:
                 match=TITLE.match(clip['name'])
                 if match and (all_titles or clip['clip'] in selected):
                     # Overall Motion is static; layer entrance keyframes remain intact.
-                    h=sequence['settings']['height'];baseline=float(match[3])
+                    h=sequence['settings']['height'];w=sequence['settings']['width'];baseline=float(match[3]);baseline_x=float(match[4] or .5)
                     self.command('effects.setParam',clip=clip['clip'],effect='motion',param='position',
-                                 value=[sequence['settings']['width']/2,h/2+(float(y)-baseline)*h])
+                                 value=[w/2+(float(x)-baseline_x)*w,h/2+(float(y)-baseline)*h])
                     count+=1
         if not count:
             raise ValueError('Selecione um título do Titan na timeline.')
+        return count
+
+    def style_titles(self,font,style,color,accent,support_font,support_style,all_titles=False):
+        sequence=self.command('sequence.inspect');selected=set(sequence['selection']);count=0
+        for track in sequence['video']:
+            for clip in track['items']:
+                match=TITLE.match(clip['name'])
+                if not match or not (all_titles or clip['clip'] in selected):continue
+                hero=match[1]!='support'
+                for layer in self.command('graphics.list',clip=clip['clip'])['layers']:
+                    self.command('graphics.set',clip=clip['clip'],layer=layer['layer'],props={
+                        'font':font if hero else support_font,'font_style':style if hero else support_style,
+                        'fill_color':accent if hero else color})
+                count+=1
+        if not count:raise ValueError('Selecione um título do Titan na timeline.')
         return count
 
 def main():

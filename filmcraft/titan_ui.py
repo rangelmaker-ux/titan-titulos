@@ -41,7 +41,7 @@ STRINGS={
 
 class App:
     def __init__(self):
-        self.root=tk.Tk(); self.root.geometry('940x870'); self.root.minsize(880,760)
+        self.root=tk.Tk(); self.root.geometry('820x900'); self.root.minsize(800,790)
         self.root.configure(bg=BG)
         self.events=queue.Queue(); self.busy=False;self.blocks=[];self.sequence_id=None
         self.settings=self.read_settings();self.lang=self.settings.get('language','pt')
@@ -72,8 +72,9 @@ class App:
     def save(self):
         if not hasattr(self,'font'):return
         data={'language':self.lang,'font':self.font.get(),'style':self.font_style.get(),
+              'support_font':self.support_font_var.get(),'support_style':self.support_style_var.get(),
               'mode':self.mode.current(),'animation':self.animation.current(),'size':self.size.get(),
-              'position':self.y.get(),'gain':self.gain.get(),'color':self.color,'accent':self.accent,
+              'position':self.y.get(),'position_x':self.x.get(),'gain':self.gain.get(),'sounds_on':self.sounds_on.get(),'color':self.color,'accent':self.accent,
               'sounds':{k:v.get() for k,v in self.mapping.items()}}
         DATA.mkdir(parents=True,exist_ok=True)
         (DATA/'settings.json').write_text(json.dumps(data),encoding='utf-8');self.settings=data
@@ -85,68 +86,8 @@ class App:
         self.buttons.append(b);return b
 
     def build(self):
-        for child in self.root.winfo_children():child.destroy()
-        self.root.title(self.tr('title')+' '+VERSION);self.buttons=[]
-        outer=ttk.Frame(self.root,padding=22);outer.pack(fill='both',expand=True)
-        header=ttk.Frame(outer);header.pack(fill='x')
-        try:
-            from PIL import Image,ImageTk
-            image=Image.open(ROOT/'icons/titan_word.png').convert('RGBA');image.thumbnail((270,75))
-            self.logo=ImageTk.PhotoImage(image);ttk.Label(header,image=self.logo).pack(side='left')
-        except (OSError,ImportError):ttk.Label(header,text='TITAN TITLES STUDIO',font=('Segoe UI',19,'bold')).pack(side='left')
-        ttk.Label(header,text='FilmCraft  •  '+VERSION,style='Muted.TLabel').pack(side='left',padx=20)
-        self.language=ttk.Combobox(header,values=['Português BR','English','Español'],state='readonly',width=15)
-        self.language.current(['pt','en','es'].index(self.lang));self.language.pack(side='right')
-        self.language.bind('<<ComboboxSelected>>',self.change_language)
-        connection=ttk.Frame(outer);connection.pack(fill='x',pady=14)
-        self.button(connection,'launch',self.launch).pack(side='left')
-        self.button(connection,'connect',lambda:self.work(self.connect)).pack(side='left',padx=8)
-        self.button(connection,'about',self.about).pack(side='right')
-        tabs=ttk.Notebook(outer);tabs.pack(fill='both',expand=True)
-        captions=ttk.Frame(tabs,padding=18);audio=ttk.Frame(tabs,padding=18)
-        tabs.add(captions,text={'pt':'LEGENDAS E TÍTULOS','en':'CAPTIONS & TITLES','es':'SUBTÍTULOS Y TÍTULOS'}[self.lang])
-        tabs.add(audio,text=self.tr('sound').upper())
-        grid=ttk.Frame(captions);grid.pack(fill='x');grid.columnconfigure((0,1,2),weight=1)
-        def field(label,column,row,widget):
-            ttk.Label(grid,text=self.tr(label),style='Muted.TLabel').grid(column=column,row=row*2,sticky='w',pady=(10,4))
-            widget.grid(column=column,row=row*2+1,sticky='ew',padx=(0,12))
-            return widget
-        self.mode=field('mode',0,0,ttk.Combobox(grid,values=[self.tr(x) for x in ('common','dynamic','mixed')],state='readonly'))
-        self.mode.current(self.settings.get('mode',2))
-        self.animation=field('animation',1,0,ttk.Combobox(grid,values=list(ANIMATIONS.values()),state='readonly'))
-        self.animation.current(self.settings.get('animation',0))
-        self.speech=field('speech',2,0,ttk.Combobox(grid,values=['Português BR','English','Español'],state='readonly'));self.speech.current(0)
-        self.font=field('font',0,1,ttk.Combobox(grid,values=sorted(set(tkfont.families()))));self.font.set(self.settings.get('font','Arial'))
-        self.font_style=field('style',1,1,ttk.Combobox(grid,values=['Regular','Bold','Italic','Bold Italic']));self.font_style.set(self.settings.get('style','Bold'))
-        self.size=field('size',2,1,ttk.Spinbox(grid,from_=20,to=200));self.size.set(self.settings.get('size',80))
-        self.y=field('position',0,2,ttk.Spinbox(grid,from_=20,to=90));self.y.set(self.settings.get('position',80))
-        self.color=self.settings.get('color','#ffffff');self.accent=self.settings.get('accent','#00b7ff')
-        field('color',1,2,ttk.Button(grid,text=self.color,command=lambda:self.pick_color('color')))
-        field('accent',2,2,ttk.Button(grid,text=self.accent,command=lambda:self.pick_color('accent')))
-        actions=ttk.Frame(captions);actions.pack(fill='x',pady=(18,8))
-        self.button(actions,'srt',self.import_srt).pack(side='left')
-        self.button(actions,'transcribe',self.start_transcription).pack(side='left',padx=8)
-        ttk.Label(captions,text=self.tr('hint'),wraplength=830,style='Muted.TLabel').pack(anchor='w',pady=6)
-        ttk.Label(captions,text=self.tr('timing'),style='Muted.TLabel').pack(anchor='w',pady=5)
-        self.text=tk.Text(captions,height=9,bg='#0d131c',fg=FG,insertbackground=FG,relief='flat',padx=10,pady=10,wrap='word',font=('Consolas',10))
-        self.text.pack(fill='both',expand=True)
-        self.fill_text()
-        bottom=ttk.Frame(captions);bottom.pack(fill='x',pady=10)
-        self.button(bottom,'load',self.load_edited).pack(side='left')
-        self.button(bottom,'generate',self.generate,True).pack(side='right')
-        positions=ttk.Frame(captions);positions.pack(fill='x')
-        self.button(positions,'selected',lambda:self.apply_position(False)).pack(side='left')
-        self.button(positions,'all',lambda:self.apply_position(True)).pack(side='left',padx=8)
-        self.mapping={}
-        for row,(key,label) in enumerate(ANIMATIONS.items()):
-            ttk.Label(audio,text=label,font=('Segoe UI',12,'bold')).grid(column=0,row=row,sticky='w',pady=12,padx=(0,30))
-            box=ttk.Combobox(audio,values=list(SOUNDS.values())+['none'],state='readonly',width=30)
-            box.set(self.settings.get('sounds',{}).get(key,SOUNDS[key]));box.grid(column=1,row=row,sticky='ew');self.mapping[key]=box
-        ttk.Label(audio,text=self.tr('volume'),style='Muted.TLabel').grid(column=0,row=6,pady=15,sticky='w')
-        self.gain=ttk.Spinbox(audio,from_=0,to=100,width=10);self.gain.set(self.settings.get('gain',35));self.gain.grid(column=1,row=6,sticky='w')
-        self.button(audio,'apply',self.apply_sounds,True).grid(column=0,row=7,columnspan=2,sticky='ew',pady=15)
-        self.status=tk.StringVar(value=self.tr('ready'));ttk.Label(outer,textvariable=self.status,wraplength=870,style='Muted.TLabel').pack(fill='x',pady=(14,0))
-        self.progress=ttk.Progressbar(outer,mode='indeterminate');self.progress.pack(fill='x',pady=(8,0))
+        from titan_view import build
+        build(self)
 
     def change_language(self,event):
         if self.busy:return
@@ -212,6 +153,25 @@ class App:
     def fill_text(self):
         self.text.delete('1.0','end')
         for block in self.blocks:self.text.insert('end','%.3f | %.3f | %s\n'%(block['start'],block['end'],block['text']))
+        if hasattr(self,'count_label'):self.count_label.configure(text='%d legendas'%len(self.blocks))
+
+    def edit_times(self):
+        window=tk.Toplevel(self.root);window.title(self.tr('timing'));window.geometry('700x430');window.configure(bg=BG)
+        frame=ttk.Frame(window,padding=18);frame.pack(fill='both',expand=True)
+        ttk.Label(frame,text=self.tr('hint'),wraplength=640).pack(anchor='w',pady=8)
+        text=tk.Text(frame,bg='#0e0e11',fg=FG,insertbackground=FG,font=('Consolas',11),padx=10,pady=10)
+        text.pack(fill='both',expand=True);text.insert('1.0',self.text.get('1.0','end-1c'))
+        def apply():
+            previous=self.text.get('1.0','end-1c');self.text.delete('1.0','end');self.text.insert('1.0',text.get('1.0','end-1c'))
+            if self.load_edited():
+                self.count_label.configure(text='%d legendas'%len(self.blocks));window.destroy()
+            else:
+                self.text.delete('1.0','end');self.text.insert('1.0',previous)
+        ttk.Button(frame,text=self.tr('load'),command=apply).pack(fill='x',pady=10)
+
+    def generate_flow(self):
+        if self.blocks:self.generate()
+        else:self.start_transcription(auto_generate=True)
 
     def import_srt(self):
         path=filedialog.askopenfilename(filetypes=[('SRT','*.srt')],parent=self.root)
@@ -235,13 +195,15 @@ class App:
             self.blocks=blocks;self.status.set('%d legendas prontas'%len(blocks));return True
         except Exception as error:messagebox.showerror('Titan',str(error),parent=self.root);return False
 
-    def start_transcription(self):
+    def start_transcription(self,auto_generate=False):
         if not messagebox.askokcancel('Titan','Deixe ativas apenas as faixas de voz no FilmCraft. Música e efeitos também entram na transcrição.\n\nNa primeira vez, pode ser necessário baixar o modelo de 488 MB.',parent=self.root):return
         language=['pt','en','es'][self.speech.current()]
         def job():
             sequence=self.bridge.execute('sequence.inspect');self.sequence_id=sequence['id']
             return transcribe(self.bridge,language,self.notify)
-        def loaded(blocks):self.blocks=blocks;self.fill_text();self.status.set('%d legendas transcritas'%len(blocks))
+        def loaded(blocks):
+            self.blocks=blocks;self.fill_text();self.status.set('%d legendas transcritas'%len(blocks))
+            if auto_generate:self.generate()
         self.work(job,loaded)
 
     def check_sequence(self):
@@ -253,18 +215,20 @@ class App:
     def generate(self):
         if not self.load_edited():return
         try:
-            self.save();size=float(self.size.get());y=float(self.y.get())/100;gain=float(self.gain.get())/100
-            if not 20<=size<=200 or not .2<=y<=.9 or not 0<=gain<=1:raise ValueError('Confira tamanho, posição e volume.')
-        except ValueError as e:messagebox.showerror('Titan',str(e),parent=self.root);return
+            size=float(self.size.get());y=float(self.y.get())/100;x=float(self.x.get())/100;gain=float(self.gain.get())/100 if self.sounds_on.get() else 0
+            if not 20<=size<=200 or not .2<=y<=.9 or not .05<=x<=.95 or not 0<=gain<=1:raise ValueError('Confira tamanho, posição e volume.')
+            self.save()
+        except (ValueError,tk.TclError) as e:messagebox.showerror('Titan',str(e),parent=self.root);return
         params=dict(mode=['common','dynamic','mixed'][self.mode.current()],animation=list(ANIMATIONS)[self.animation.current()],
                     font=self.font.get(),style=self.font_style.get(),size=size,y=y,gain=gain,
+                    x=x,support_font=self.support_font_var.get(),support_style=self.support_style_var.get(),
                     color=self.color,accent=self.accent,sounds={k:v.get() for k,v in self.mapping.items()})
         blocks=list(self.blocks)
         def job():self.check_sequence();return self.titan.generate(blocks,**params)
         self.work(job,lambda r:self.status.set('%d títulos • %d sons sincronizados'%(r['titles'],r['sounds'])))
 
     def apply_sounds(self):
-        try:gain=float(self.gain.get())/100
+        try:gain=float(self.gain.get())/100 if self.sounds_on.get() else 0
         except ValueError:return
         if not 0<=gain<=1:return
         mappings={k:v.get() for k,v in self.mapping.items()};self.save()
@@ -274,7 +238,13 @@ class App:
         try:y=float(self.y.get())/100
         except ValueError:return
         if not .2<=y<=.9:return
-        self.work(lambda:self.titan.position(y,all_titles),lambda n:self.status.set('%d títulos ajustados'%n))
+        x=float(self.x.get())/100
+        self.work(lambda:self.titan.position(y,all_titles,x=x),lambda n:self.status.set('%d títulos ajustados'%n))
+
+    def apply_style(self,all_titles):
+        params=dict(font=self.font.get(),style=self.font_style.get(),color=self.color,accent=self.accent,
+                    support_font=self.support_font_var.get(),support_style=self.support_style_var.get(),all_titles=all_titles)
+        self.work(lambda:self.titan.style_titles(**params),lambda n:self.status.set('%d títulos ajustados'%n))
 
     def about(self):
         window=tk.Toplevel(self.root);window.title('About • Titan');window.configure(bg=BG);window.geometry('480x460')

@@ -1,15 +1,21 @@
-# Titan Titles Studio para FilmCraft 1.0.1
+# Titan Titles Studio para FilmCraft 1.1.0
 
 Versão para Windows 10/11 x64, validada com FilmCraft 0.7.2. Não requer Python, DaVinci Resolve ou alteração dos arquivos do FilmCraft. É uma janela própria conectada ao editor, não um painel interno.
 
 ## Instalar e conectar
 
-1. Execute `Instalar-Titan-FilmCraft-1.0.1.exe` e clique em **Instalar / Atualizar**. O pacote ainda não possui assinatura digital; o Windows pode apresentar um aviso ao executar um aplicativo baixado. Confira o SHA256 fornecido junto do instalador.
+1. Execute `Instalar-Titan-FilmCraft-1.1.0.exe` e clique em **Instalar / Atualizar**. O pacote ainda não possui assinatura digital; o Windows pode apresentar um aviso ao executar um aplicativo baixado. Confira o SHA256 fornecido junto do instalador.
 2. Salve seu projeto e feche o FilmCraft que estava aberto.
 3. Abra o atalho **Titan Titles Studio - FilmCraft** e clique em **Abrir FilmCraft com Titan**.
 4. No FilmCraft, abra seu projeto e a sequência desejada. No Titan, clique em **Conectar**.
 
 O atalho abre o Titan; seu botão abre o FilmCraft com a conexão local habilitada. O Titan não fecha nem substitui um FilmCraft aberto sem essa conexão. O canal é restrito a `127.0.0.1:19876`; o FilmCraft oferece esse canal sem autenticação, portanto abra por esse fluxo apenas enquanto usar a integração.
+
+## Interface
+
+As abas seguem a organização do Titan no DaVinci: **LEGENDAS**, **TÍTULOS** e **ANIMAÇÕES**. A tela principal reúne transcrição, prévia, posição, fontes Principal/Apoio, paletas de cor e tipo de legenda. Texto e tempos ficam em **Editar texto e tempos…**. Os efeitos sonoros ficam em **ANIMAÇÕES → Sons por animação…**.
+
+O botão **Gerar legendas** transcreve e gera quando ainda não há texto carregado; com SRT ou texto já carregado, gera diretamente. Na aba Títulos, fonte e posição podem ser aplicadas ao selecionado ou a todos. A prévia é ilustrativa; o resultado final usa o renderizador do FilmCraft.
 
 ## Gerar
 
