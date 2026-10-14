@@ -33,7 +33,12 @@ class Timeline:
         for track in self.tracks.values():
             track[:]=[c for c in track if c not in clips]
         return None
-    def DeleteTrack(self,kind,index):self.tracks.pop(index);return True
+    def DeleteTrack(self,kind,index):
+        self.tracks.pop(index)
+        keys=sorted(self.tracks)
+        self.tracks={i:self.tracks[key] for i,key in enumerate(keys,1)}
+        self.names={i:self.names.get(key,'Audio '+str(i)) for i,key in enumerate(keys,1)}
+        return True
 
 class MacTimeline(Timeline):
     def AddTrack(self,*args):
@@ -68,17 +73,17 @@ class Sounds(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(dir=ROOT);self.addCleanup(self.temp.cleanup)
         self.cache=Path(self.temp.name)
-    def test_combined_animations_each_get_a_sound_at_their_window_start(self):
+    def test_combined_animations_get_one_entrance_accent_without_exit_sound(self):
         entry={'uid':'title','item':Clip(100,160)}
         events=sfx.plan_events([entry],lambda e:{'in':{'slide','flicker'},'out':{'blur'}},20)
-        self.assertEqual([(e['start'],e['frames'],e['effect']) for e in events],[(100,21,'whoosh'),(100,21,'glitch'),(139,21,'airy')])
-        self.assertEqual(events[-1]['gain'],.5)
+        self.assertEqual([(e['start'],e['frames'],e['effect']) for e in events],[(100,21,'glitch')])
+        self.assertEqual(events[0]['gain'],.35)
     def test_per_animation_mapping_and_automatic_defaults(self):
         entry={'uid':'title','item':Clip(100,160)}
         state=lambda e:{'in':{'slide','flicker'},'out':{'slide'}}
-        events=sfx.plan_events([entry],state,20,{'slide':'shake','flicker':'auto'})
+        events=sfx.plan_events([entry],state,20,{'slide':'shake','flicker':'shake'})
         self.assertEqual([(e['animation'],e['effect'],e['start']) for e in events],
-                         [('slide','shake',100),('flicker','glitch',100),('slide','shake',139)])
+                         [('flicker','shake',100)])
     def test_animation_metadata_survives_reopen_and_preserves_user_markers(self):
         clip=Clip(100,160);clip.markers[0]={'customData':'user-note'}
         entry={'item':clip}
@@ -97,8 +102,8 @@ class Sounds(unittest.TestCase):
     def test_audio_range_uses_timeline_frames_when_template_fps_differs(self):
         entry={'uid':'title','item':Clip(100,220)}
         events=sfx.plan_events([entry],lambda e:{'in':{'slide'},'out':{'slide'},
-            'duration':20,'animation_fps':30},20,timeline_fps=24)
-        self.assertEqual([(e['start'],e['frames']) for e in events],[(100,17),(203,17)])
+            'duration':6,'animation_fps':30},20,timeline_fps=24)
+        self.assertEqual([(e['start'],e['frames']) for e in events],[(100,6)])
     def test_six_sounds_at_animation_start(self):
         self.assertEqual(set(sfx.EFFECTS.values()),{'whoosh','bounce','glitch','shake','airy','motionblur'})
         for animation,effect in sfx.EFFECTS.items():
@@ -107,11 +112,11 @@ class Sounds(unittest.TestCase):
                    'out':set() if animation=='mblur' else {animation},
                    'mblur':animation=='mblur'}
             events=sfx.plan_events([entry],lambda e:state,12)
-            self.assertEqual([(e['start'],e['effect']) for e in events],[(86400,effect),(86477,effect)])
+            self.assertEqual([(e['start'],e['effect']) for e in events],[(86400,effect)])
     def test_motion_blur_has_an_automatic_sound_at_the_exact_start(self):
         entry={'uid':'mblur','item':Clip(900,980)}
         events=sfx.plan_events([entry],lambda e:{'in':set(),'out':set(),'mblur':True},12)
-        self.assertEqual([(e['start'],e['effect']) for e in events],[(900,'motionblur'),(967,'motionblur')])
+        self.assertEqual([(e['start'],e['effect']) for e in events],[(900,'motionblur')])
     def test_audio_exact_length_and_quieter_exit(self):
         paths=[]
         for gain in (1,.5):
@@ -130,20 +135,59 @@ class Sounds(unittest.TestCase):
     def test_reapply_replaces_owned_sounds_preserves_voice(self):
         timeline,pool,project,service,entry=self.fixture();voice=timeline.tracks[1][0]
         state=lambda e:{'in':{'slide'},'out':{'blur'}}
-        for _ in range(3):self.assertEqual(service.sync(project,timeline,[entry],state,20),2)
+        for _ in range(3):self.assertEqual(service.sync(project,timeline,[entry],state,20),1)
         allclips=[c for clips in timeline.tracks.values() for c in clips]
-        self.assertEqual(len(allclips),3);self.assertIn(voice,allclips)
-        self.assertEqual(len(pool.clips),2)
+        self.assertEqual(len(allclips),2);self.assertIn(voice,allclips)
+        self.assertEqual(len(pool.clips),1)
         self.assertEqual(pool.last['mediaType'],2)
-        self.assertEqual(pool.last['endFrame'],21)
+        self.assertEqual(pool.last['endFrame'],10)
         service.sync(project,timeline,[entry],state,20,False)
         self.assertEqual([c for clips in timeline.tracks.values() for c in clips],[voice])
+    def test_support_and_plain_captions_stay_silent_and_highlights_are_spaced(self):
+        entries=[{'uid':str(i),'item':Clip(i*24,i*24+60)} for i in range(5)]
+        roles=['highlight','highlight','highlight','support','common']
+        state=lambda e:{'role':roles[int(e['uid'])],'in':{'slide'},'out':{'blur'}}
+        events=sfx.plan_events(entries,state,12,timeline_fps=24)
+        self.assertEqual([(e['uid'],e['start']) for e in events],[('0',0),('2',48)])
+        self.assertEqual(sfx.plan_events(entries,state,12,timeline_fps=24,gain=0),[])
+        self.assertTrue(all(e['frames']<=10 for e in events))
+    def test_short_audio_preserves_pitch_instead_of_speeding_up(self):
+        source=self.cache/'tone.wav';target=self.cache/'short.wav'
+        samples=array('h')
+        for i in range(24000):
+            value=int(10000*math.sin(2*math.pi*1000*i/48000))
+            samples.extend((value,value))
+        with wave.open(str(source),'wb') as w:
+            w.setnchannels(2);w.setsampwidth(2);w.setframerate(48000);w.writeframes(samples.tobytes())
+        sfx.fit_audio(source,target,6,24,1)
+        with wave.open(str(target),'rb') as w:
+            self.assertEqual(w.getnframes(),12000)
+            output=array('h');output.frombytes(w.readframes(w.getnframes()))
+        signal=output[2000:10000:2]
+        crossings=sum(a*b<0 or a==0 and b!=0 for a,b in zip(signal,signal[1:]))
+        self.assertGreater(crossings,155);self.assertLess(crossings,180)
+    def test_copied_highlight_blocks_at_different_times_keep_their_own_accent(self):
+        entries=[{'uid':'original','item':Clip(0,60)},{'uid':'copy','item':Clip(96,156)}]
+        events=sfx.plan_events(entries,lambda e:{'role':'highlight','caption_block':'copied-metadata','in':{'slide'}},12,timeline_fps=24)
+        self.assertEqual([e['uid'] for e in events],['original','copy'])
+    def test_reapply_removes_legacy_support_and_exit_sounds_without_touching_voice(self):
+        timeline,pool,project,service,hero=self.fixture();voice=timeline.tracks[1][0]
+        support={'uid':'support','item':Clip(100,160)}
+        state=lambda e:{'role':'highlight' if e['uid']=='title' else 'support','in':{'slide'},'out':{'blur'}}
+        service.sync(project,timeline,[hero,support],state,12)
+        for uid,side in (('support','in'),('title','out')):
+            clip=Clip(100,113);clip.AddMarker(0,'Blue','','',1,sfx.PREFIX+'{"uid":"'+uid+'","side":"'+side+'"}')
+            timeline.tracks[2].append(clip)
+        service.sync(project,timeline,[hero,support],state,12)
+        sounds=[c for clips in timeline.tracks.values() for c in clips if sfx.owned_uid(c)]
+        self.assertEqual(len(sounds),1);self.assertEqual(sfx.owned_uid(sounds[0]),'title')
+        self.assertIn(voice,timeline.tracks[1])
     def test_insertion_failure_preserves_existing_audio(self):
         timeline,pool,project,service,entry=self.fixture();state=lambda e:{'in':{'slide'}}
         service.sync(project,timeline,[entry],state,20)
         old=[c for clips in timeline.tracks.values() for c in clips]
         pool.fail=True
-        with self.assertRaises(RuntimeError):service.sync(project,timeline,[entry],state,21)
+        with self.assertRaises(RuntimeError):service.sync(project,timeline,[entry],state,21,gain=.25)
         self.assertEqual([c for clips in timeline.tracks.values() for c in clips],old)
     def test_mac_style_track_api_without_boolean_return(self):
         timeline=MacTimeline();pool=Pool(timeline);project=SimpleNamespace(GetMediaPool=lambda:pool,GetUniqueId=lambda:'project')

@@ -6,6 +6,25 @@ LANGUAGE_NAMES=('Português (Brasil)','English','Español')
 LANG='pt-BR'
 # Portuguese source | English | Spanish
 ROWS='''
+Um som curto na entrada do destaque, sem áudio nas palavras de apoio ou na saída.|One short sound on the highlight entrance, no audio on supporting words or exits.|Un sonido corto en la entrada del destacado, sin audio en palabras de apoyo ni en la salida.
+Sons são usados somente na entrada do destaque.|Sounds are used only on the highlight entrance.|Los sonidos se usan solo en la entrada del destacado.
+Escolha o som de cada animação. Apenas o destaque recebe um acento na entrada; apoio e saída ficam sem som.|Choose a sound for each animation. Only the highlight gets an entrance accent; supporting text and exits remain silent.|Elige el sonido de cada animación. Solo el destacado recibe un acento al entrar; el apoyo y la salida permanecen sin sonido.
+Definir como destaque|Set as highlight|Definir como destacado
+Usar como apoio|Use as supporting text|Usar como apoyo
+Selecione um único texto para definir seu papel.|Select one text to set its role.|Selecciona un único texto para definir su función.
+Papel do texto atualizado. Som somente nos destaques.|Text role updated. Sound only on highlights.|Función del texto actualizada. Sonido solo en destacados.
+Modo de legenda|Caption mode|Modo de subtítulos
+Comum|Standard|Común
+Dinâmica|Dynamic|Dinámica
+Mista|Mixed|Mixta
+Tamanho da comum|Standard caption size|Tamaño de la común
+Comum: texto estático, com a fonte Principal e tamanho fixo; sem animação nem som.|Standard: static text using the Main font and fixed size; no animation or sound.|Común: texto estático con fuente Principal y tamaño fijo; sin animación ni sonido.
+Dinâmica: animação e um som somente na palavra de destaque; apoio permanece discreto.|Dynamic: animation and one sound only on the highlighted word; supporting text stays subtle.|Dinámica: animación y un sonido solo en la palabra destacada; el apoyo permanece discreto.
+Mista: dois blocos comuns entre destaques elegíveis. Fonte Apoio na comum; Principal no destaque.|Mixed: two standard blocks between eligible highlights. Supporting font for standard captions; Main font for highlights.|Mixta: dos bloques comunes entre destacados elegibles. Fuente Apoyo en la común; Principal en el destacado.
+Focar animações e sons nos destaques|Focus animation and sound on highlights|Centrar animación y sonido en destacados
+Volume dos sons|Sound volume|Volumen de sonidos
+Sons atualizados somente nos destaques, com uma entrada por bloco.|Sounds updated only on highlights, with one entrance per block.|Sonidos actualizados solo en destacados, con una entrada por bloque.
+Preferências salvas. Legendas comuns e textos de apoio permanecem sem som.|Preferences saved. Standard captions and supporting text remain silent.|Preferencias guardadas. Los subtítulos comunes y el texto de apoyo permanecen sin sonido.
 Aplicar à animação|Apply to animation|Aplicar a la animación
 Aplicar todas as animações|Apply all animations|Aplicar todas las animaciones
 Som aplicado a %d animações em %d títulos.|Sound applied to %d animations in %d titles.|Sonido aplicado a %d animaciones en %d títulos.

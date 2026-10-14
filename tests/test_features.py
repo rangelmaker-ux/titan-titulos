@@ -61,6 +61,7 @@ class Features(unittest.TestCase):
         instance=SimpleNamespace(_busy=False,items={'gsfx':SimpleNamespace(Checked=False),'asfx':SimpleNamespace(Checked=False)},sfx_map_items={'sfx_map_flicker':SimpleNamespace(CurrentIndex=sfx.CHOICES.index('shake')),
             'sfx_map_status':SimpleNamespace(Text='')},sfx_map_window=object(),refresh=lambda **kw:None,
             _anim_carregar=lambda entry:states[entry['uid']],_anim_salvar=lambda entry,state:saved.append(entry['uid']),
+            _caption_roles=lambda entries:None,
             _sync_sounds=lambda entries:sync.extend(entries),sync_buttons=lambda:None,_gstatus=lambda text:None)
         ns['on_apply_sfx_map'](instance,'flicker')
         self.assertEqual(states['flicker-a']['sfx_in'],'auto')

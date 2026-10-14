@@ -78,16 +78,20 @@ class Build(unittest.TestCase):
                 instance.entries=[];instance.gen_layouts=['badge'];instance.gen_auto=True
                 instance.build()
                 self.assertEqual(raw.widgets['tab_0'].Text.strip(),caption)
-                for name in ('pos_all','ui_language','about','gsfx','asfx','in_sound','out_sound','sfx_map_open'):
+                for name in ('pos_all','ui_language','about','gsfx','asfx','in_sound','out_sound','sfx_map_open','caption_mode','gcommon_size'):
                     self.assertIn(name,raw.widgets)
                 self.assertEqual(raw.widgets['ui_language'].CurrentIndex,locale.LANGUAGES.index(language))
                 self.assertTrue(raw.widgets['gsfx'].Checked)
                 self.assertTrue(raw.widgets['asfx'].Checked)
+                self.assertEqual(raw.widgets['caption_mode'].CurrentIndex,2)
+                self.assertEqual(len(raw.widgets['caption_mode'].items),3)
                 instance._syncing=False
                 instance.on_open_sfx_map()
                 self.assertEqual(len(sfx_module.ANIMATION_SOUNDS),6)
                 for key,_label in sfx_module.ANIMATION_SOUNDS:
                     self.assertEqual(len(instance.sfx_map_items['sfx_map_'+key].items),len(sfx_module.CHOICES))
+                self.assertIn('sfx_focus',raw.widgets)
+                self.assertEqual(raw.widgets['sfx_volume'].Value,35)
                 self.assertEqual(instance.win.WindowTitle,'Titan Titles Studio v'+(ROOT/'VERSION').read_text().strip())
         locale.configure('pt-BR')
 

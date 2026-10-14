@@ -40,6 +40,8 @@ def save_animation(entry,state):
     data={'version':1,'in':sorted(state.get('in',set())),'out':sorted(state.get('out',set())),
           'mblur':bool(state.get('mblur')),'duration':state.get('duration',20),
           'animation_fps':state.get('animation_fps',0)}
+    for key in ('role','caption_block','distance'):
+        if key in state:data[key]=state[key]
     for side in ('in','out'):
         data['dir_'+side]=state.get('dir_'+side,'none')
         data['sfx_'+side]=state.get('sfx_'+side,'auto')
@@ -55,36 +57,44 @@ def save_animation(entry,state):
         if frame is None:return
         item.AddMarker(frame,'Blue','Titan Animation','',1,payload)
 
-def plan_events(entries,states,duration,mappings=None,timeline_fps=None):
+def plan_events(entries,states,duration,mappings=None,timeline_fps=None,gain=.35,min_gap_seconds=2):
     events=[]
-    for entry in entries:
+    last=-float('inf');blocks=set()
+    for entry in sorted(entries,key=lambda e:(int(e['item'].GetStart()),str(e['uid']))):
         item=entry['item']
         start,end=int(item.GetStart()),int(item.GetEnd())
         length=end-start
         if length<=0:continue
         state=states(entry)
+        if state.get('role','highlight')!='highlight':continue
+        block=(state.get('caption_block') or str(entry['uid']),end)
+        if block in blocks:continue
         # Same bounded duration as Animator.render, including its end keyframe.
         rate=float(timeline_fps or state.get('animation_fps') or 1)
         source_rate=float(state.get('animation_fps') or rate)
         source_length=max(1,int(round(length*source_rate/rate)))
         source_span=min(source_length,max(2,min(int(state.get('duration',duration)),max(2,source_length//2)))+1)
         span=max(1,min(length,int(round(source_span*rate/source_rate))))
-        for side in ('in','out'):
+        if timeline_fps:span=min(span,max(1,int(round(rate*.4))))
+        for side in ('in',):
             choice=state.get('sfx_'+side,'auto')
             active=bool(state.get(side,set()) or state.get('mblur'))
-            animations=[key for key,_ in ANIMATION_SOUNDS if key in state.get(side,set()) or key=='mblur' and state.get('mblur')]
+            animations=[key for key in ('flicker','shake','bounce','slide','blur','mblur')
+                        if key in state.get(side,set()) or key=='mblur' and state.get('mblur')]
             effects=[]
             if choice=='auto':
-                for animation in animations:
+                for animation in animations[:1]:
                     mapped=(mappings or {}).get(animation,'auto')
                     effect=EFFECTS[animation] if mapped=='auto' else mapped
                     if effect in EFFECTS.values():effects.append((animation,effect))
             elif choice in EFFECTS.values() and active:effects=[('manual',choice)]
             for animation,effect in effects:
+                if gain<=0 or timeline_fps and start-last<float(timeline_fps)*min_gap_seconds:continue
                 events.append({'uid':str(entry['uid']),'side':side,'effect':effect,
                     'animation':animation,
                     'start':start if side=='in' else end-span,'frames':span,
-                    'gain':1.0 if side=='in' else 0.5})
+                    'gain':gain})
+                blocks.add(block);last=start
     return events
 
 def owned_uid(clip):
@@ -103,11 +113,10 @@ def fit_audio(source,destination,frames,fps,gain):
     target_frames=max(1,int(round(int(frames)*rate/float(fps))))
     out=array('h')
     for i in range(target_frames):
-        position=i*(old_frames-1)/max(1,target_frames-1)
-        low=int(position);high=min(old_frames-1,low+1);fraction=position-low
-        fade=min(1.0,i/max(1,int(rate*.006)),(target_frames-1-i)/max(1,int(rate*.012)))
+        # Trim/pad without changing playback speed or pitch; fade short accents.
+        fade=min(1.0,i/max(1,int(rate*.006)),(target_frames-1-i)/max(1,int(rate*.04)))
         for ch in (0,1):
-            value=(samples[low*2+ch]*(1-fraction)+samples[high*2+ch]*fraction)*gain*max(0,fade)
+            value=(samples[i*2+ch] if i<old_frames else 0)*gain*max(0,fade)
             out.append(int(max(-32767,min(32767,value))))
     with wave.open(str(destination),'wb') as output:
         output.setnchannels(2);output.setsampwidth(2);output.setframerate(rate);output.writeframes(out.tobytes())
@@ -171,7 +180,7 @@ class SoundEffects:
         return self.media[key]
     def _audio_file(self,event,fps):
         source=self.assets/(event['effect']+'.wav')
-        key=hashlib.sha256(source.read_bytes()+repr((event['frames'],fps,event['gain'])).encode()).hexdigest()
+        key=hashlib.sha256(b'pitch-preserving-v1'+source.read_bytes()+repr((event['frames'],fps,event['gain'])).encode()).hexdigest()
         self.cache.mkdir(parents=True,exist_ok=True)
         path=self.cache/(key+'.wav')
         if not path.exists():
@@ -196,7 +205,14 @@ class SoundEffects:
         if result is True:return
         remaining=[c for track in range(1,int(timeline.GetTrackCount('audio'))+1)
                    for c in values(timeline.GetItemListInTrack('audio',track))]
-        if any(clip in remaining for clip in clips):
+        def identity(clip):
+            try:
+                uid=clip.GetUniqueId()
+                if uid:return ('uid',str(uid))
+            except (AttributeError,TypeError):pass
+            return ('object',id(clip))
+        remaining_ids={identity(clip) for clip in remaining}
+        if any(identity(clip) in remaining_ids for clip in clips):
             raise RuntimeError(error)
     @staticmethod
     def _add_marker(clip,event):
@@ -205,18 +221,28 @@ class SoundEffects:
         if result is True:return
         if owned_uid(clip)==str(event['uid']):return
         raise RuntimeError('Could not mark sound ownership.')
-    def sync(self,project,timeline,entries,states,duration,enabled=True,mappings=None):
+    def sync(self,project,timeline,entries,states,duration,enabled=True,mappings=None,gain=.35):
         uids={str(e['uid']) for e in entries}
         if not uids:return 0
         fps=float(timeline.GetSetting('timelineFrameRate') or 24)
-        events=plan_events(entries,states,duration,mappings,fps) if enabled else []
+        events=plan_events(entries,states,duration,mappings,fps,gain) if enabled else []
         timeline_id=str(timeline.GetUniqueId()) if hasattr(timeline,'GetUniqueId') else str(id(timeline))
         context=(str(project.GetUniqueId()),timeline_id)
-        fingerprints={uid:tuple((e['side'],e['effect'],e['start'],e['frames'],e['gain'],fps)
-                                for e in events if e['uid']==uid) for uid in uids}
-        if all(self.fingerprints.get(context+(uid,))==value for uid,value in fingerprints.items()):
-            return len(events)
-        old=self._old(timeline,uids)
+        grouped_events={uid:[] for uid in uids}
+        for event in events:grouped_events[event['uid']].append(
+            (event['side'],event['effect'],event['start'],event['frames'],event['gain'],fps))
+        fingerprints={uid:tuple(group) for uid,group in grouped_events.items()}
+        old_all=self._old(timeline,uids)
+        old_by_uid={uid:[] for uid in uids}
+        for clip in old_all:old_by_uid[owned_uid(clip)].append(clip)
+        owned_tracks={track for track in range(1,int(timeline.GetTrackCount('audio'))+1)
+                      if any(owned_uid(c) in uids for c in values(timeline.GetItemListInTrack('audio',track)))}
+        counts={uid:len(group) for uid,group in old_by_uid.items()}
+        changed={uid for uid,value in fingerprints.items() if
+                 self.fingerprints.get(context+(uid,))!=value or counts[uid]!=len(value)}
+        if not changed:return len(events)
+        uids=changed;events=[event for event in events if event['uid'] in changed]
+        old=[clip for uid in changed for clip in old_by_uid[uid]]
         pool=project.GetMediaPool()
         lanes={}
         for track in range(1,int(timeline.GetTrackCount('audio'))+1):
@@ -266,5 +292,9 @@ class SoundEffects:
                     try:timeline.DeleteTrack('audio',track)
                     except AttributeError:pass
             raise
+        for track in sorted(owned_tracks|set(new_tracks),reverse=True):
+            if not values(timeline.GetItemListInTrack('audio',track)):
+                try:timeline.DeleteTrack('audio',track)
+                except Exception:pass
         for uid,value in fingerprints.items():self.fingerprints[context+(uid,)]=value
         return len(made)
