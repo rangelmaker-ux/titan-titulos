@@ -4964,7 +4964,7 @@ class App(object):
                 self._anim_restaurar(entry)
         for e, move in zip(self.entries, moves):  
             set_move(e, move[0] - 0.5, move[1] - 0.5)
-        self.items["status"].Text = "Layout: " + dict(LAYOUTS)[key]
+        self.items["status"].Text = "Layout: " + tr(dict(LAYOUTS)[key])
         self._sync_sounds(self.entries)
         self._try(self.update_preview)
 

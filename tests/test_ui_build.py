@@ -79,7 +79,7 @@ class Build(unittest.TestCase):
                 self.assertEqual(raw.widgets['ui_language'].CurrentIndex,locale.LANGUAGES.index(language))
                 self.assertTrue(raw.widgets['gsfx'].Checked)
                 self.assertTrue(raw.widgets['asfx'].Checked)
-                self.assertEqual(instance.win.WindowTitle,'Titan Titles Studio v3.3.0')
+                self.assertEqual(instance.win.WindowTitle,'Titan Titles Studio v'+(ROOT/'VERSION').read_text().strip())
         locale.configure('pt-BR')
 
 if __name__=='__main__':unittest.main()
