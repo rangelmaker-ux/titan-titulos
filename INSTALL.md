@@ -10,9 +10,11 @@ Abra `Instalar_Windows.bat`. O instalador permite instalar/atualizar, remover a 
 
 ## Mac
 
-Abra `Instalar_no_Mac.command`. Escolha Instalar ou Remover; ao instalar, escolha manter os arquivos ou remover a versão anterior. Se o macOS não permitir abrir, use Abrir pelo menu de contexto ou consulte Privacidade e Segurança. Se o ZIP perder a permissão executável, rode `bash ` seguido do caminho do instalador no Terminal (arraste o arquivo para preencher o caminho).
+Use `Titan-Titles-Studio-Mac-3.2.2.pkg`, abra no Instalador do macOS e siga Continuar > Instalar. Autorize com a senha ou Touch ID quando solicitado. Feche o Titan antes de instalar e reabra o Resolve ao terminar. O instalador limpa os nomes antigos do Titan automaticamente, guardando um backup fora de Scripts.
 
-O instalador usa diálogos nativos do macOS e um cabeçalho Titânio/Azul no Terminal. Os diálogos seguem a aparência do sistema.
+Este pacote ainda não possui assinatura Developer ID nem notarização. Se o macOS bloquear por desenvolvedor não identificado e oferecer a exceção, autorize em Ajustes do Sistema > Privacidade e Segurança > Abrir Mesmo. Não desative o Gatekeeper. Assinatura/notarização exige certificado Apple; veja tools/macos/README.md.
+
+O `.command` permanece como alternativa para suporte, mas o `.pkg` é a instalação recomendada. Não copie o ZIP inteiro para Scripts/Edit.
 
 ## Abrir o plugin
 

@@ -19,7 +19,7 @@ spec.loader.exec_module(b)
 
 class Updates(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT)
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
         self.dist = self.base/'dist'

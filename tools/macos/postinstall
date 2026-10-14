@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+HERE="$(cd -- "$(dirname -- "$0")" && pwd)"
+[ "${3:-/}" = / ] || { echo 'Selecione o disco de inicialização do Mac.' >&2; exit 1; }
+user=$(/usr/bin/stat -f %Su /dev/console)
+case "$user" in root|loginwindow|_mbsetupuser|'') user="${SUDO_USER:-}";; esac
+case "$user" in root|loginwindow|_mbsetupuser|'') echo 'Entre na sua conta do Mac antes de instalar o Titan.' >&2; exit 1;; esac
+uid=$(/usr/bin/id -u "$user")
+gid=$(/usr/bin/id -g "$user")
+home=$(/usr/bin/dscl . -read "/Users/$user" NFSHomeDirectory | /usr/bin/sed 's/^NFSHomeDirectory: //')
+version=$(/bin/cat "$HERE/VERSION")
+/bin/bash "$HERE/install_engine.sh" "$HERE/payload" "$home" "$uid" "$gid" "$version"

@@ -1,8 +1,7 @@
-Titan Titles Studio v3.2.1
+Titan Titles Studio v3.2.2
 
-- Uma única entrada no menu: Titan Studio.
-- Recursos, atualizador e backups ficam em Fusion, fora de Scripts.
-- Migração automática dos backups e arquivos antigos conhecidos do Titan para fora do menu.
-- Instaladores Windows e Mac corrigidos; preserva outros plugins.
-
-Reinstale este pacote para corrigir instalações antigas. Atualizações automáticas pelo GitHub exigem Releases públicas; repositório privado exige serviço de distribuição autenticado, ainda não implementado.
+- Instalador Mac nativo .pkg, sem dependência de Python nem cópia manual.
+- Limpeza dos nomes antigos, apenas Titan Studio no menu, recursos e backups fora de Scripts.
+- Transação com rollback e testes de instalação/reinstalação em macOS.
+- O pacote ainda não é assinado/notarizado pela Apple. O build suporta assinatura e notarização quando houver certificado.
+- Git privado continua exigindo um serviço autenticado para atualizações dos clientes.

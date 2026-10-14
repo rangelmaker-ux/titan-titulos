@@ -7,7 +7,7 @@ Layouts, tipografia e movimento para DaVinci Resolve. Titânio & Azul Elétrico 
 Baixe o ZIP do seu sistema na [última versão](https://github.com/rangelmaker-ux/titan-titulos/releases/latest), extraia tudo e abra:
 
 - Windows: Instalar_Windows.bat.
-- Mac: Instalar_no_Mac.command.
+- Mac: pacote nativo Titan-Titles-Studio-Mac-3.2.2.pkg (artefato do workflow Mac Installer).
 
 Os instaladores permitem instalar, reinstalar removendo a versão anterior ou desinstalar. Um backup é preservado; outros plugins e títulos nos projetos permanecem intactos.
 

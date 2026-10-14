@@ -7,7 +7,7 @@ permissions:
   contents: write
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -19,6 +19,8 @@ jobs:
         run: bash -n '2 - Mac/Instalar_no_Mac.command'
       - name: Build
         run: python tools/build_release.py
+      - name: Build native Mac installer
+        run: bash tools/macos/build_pkg.sh
       - name: Publish complete release
         env:
           GH_TOKEN: ${{ github.token }}

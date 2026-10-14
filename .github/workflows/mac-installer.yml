@@ -1,0 +1,41 @@
+name: Build and test native Mac installer
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/macos/**'
+      - 'tests/**'
+      - 'src/**'
+      - 'VERSION'
+      - '.github/workflows/mac-installer.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test real macOS installation and rollback
+        run: python -m unittest discover -s tests -v
+      - name: Build native package
+        run: bash tools/macos/build_pkg.sh
+      - name: Verify native Installer execution
+        run: |
+          set -euo pipefail
+          sudo installer -pkg "dist/Titan-Titles-Studio-Mac-$(cat VERSION).pkg" -target /
+          FUSION="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion"
+          test -f "$FUSION/Scripts/Edit/Titan Studio.py"
+          test -f "$FUSION/TitanTitlesStudio/titan_update.py"
+          test "$(find "$FUSION/Scripts" -name '*.py' | wc -l | tr -d ' ')" = 1
+          cmp 'src/Titan Titles Studio.py' "$FUSION/Scripts/Edit/Titan Studio.py"
+          sudo installer -pkg "dist/Titan-Titles-Studio-Mac-$(cat VERSION).pkg" -target /
+          test "$(find "$FUSION/Scripts" -name '*.py' | wc -l | tr -d ' ')" = 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Titan-Mac-Installer
+          path: dist/*.pkg
+          retention-days: 14
