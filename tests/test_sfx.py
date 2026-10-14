@@ -18,6 +18,7 @@ class Clip:
     def GetMarkers(self):return self.markers
     def AddMarker(self,frame,color,name,note,duration,data):self.markers[frame]={'customData':data};return None
     def SetName(self,name):self.name=name;return True
+    def UpdateMarkerCustomData(self,frame,data):self.markers[frame]['customData']=data;return True
     def GetClipProperty(self,key):return self.path if key=='File Path' else '24'
 
 class Timeline:
@@ -65,11 +66,27 @@ class Sounds(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(dir=ROOT);self.addCleanup(self.temp.cleanup)
         self.cache=Path(self.temp.name)
-    def test_events_use_animation_windows_and_glitch_priority(self):
+    def test_combined_animations_each_get_a_sound_at_their_window_start(self):
         entry={'uid':'title','item':Clip(100,160)}
         events=sfx.plan_events([entry],lambda e:{'in':{'slide','flicker'},'out':{'blur'}},20)
-        self.assertEqual([(e['start'],e['frames'],e['effect']) for e in events],[(100,21,'glitch'),(139,21,'airy')])
-        self.assertEqual(events[1]['gain'],.5)
+        self.assertEqual([(e['start'],e['frames'],e['effect']) for e in events],[(100,21,'whoosh'),(100,21,'glitch'),(139,21,'airy')])
+        self.assertEqual(events[-1]['gain'],.5)
+    def test_per_animation_mapping_and_automatic_defaults(self):
+        entry={'uid':'title','item':Clip(100,160)}
+        state=lambda e:{'in':{'slide','flicker'},'out':{'slide'}}
+        events=sfx.plan_events([entry],state,20,{'slide':'shake','flicker':'auto'})
+        self.assertEqual([(e['animation'],e['effect'],e['start']) for e in events],
+                         [('slide','shake',100),('flicker','glitch',100),('slide','shake',139)])
+    def test_animation_metadata_survives_reopen_and_preserves_user_markers(self):
+        clip=Clip(100,160);clip.markers[0]={'customData':'user-note'}
+        entry={'item':clip}
+        sfx.save_animation(entry,{'in':{'slide','flicker'},'mblur':True,'duration':12})
+        self.assertEqual(clip.markers[0]['customData'],'user-note')
+        loaded=sfx.load_animation({'item':clip})
+        self.assertEqual(set(loaded['in']),{'slide','flicker'});self.assertTrue(loaded['mblur'])
+        self.assertEqual(loaded['duration'],12)
+        sfx.save_animation(entry,{'in':{'bounce'},'out':set()})
+        self.assertEqual(len(clip.markers),2);self.assertEqual(sfx.load_animation(entry)['in'],['bounce'])
     def test_manual_override_and_silence(self):
         entry={'uid':'title','item':Clip(100,160)}
         events=sfx.plan_events([entry],lambda e:{'in':{'slide'},'out':{'blur'},'sfx_in':'glitch','sfx_out':'none'},20)

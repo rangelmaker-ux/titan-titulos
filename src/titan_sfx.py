@@ -10,7 +10,7 @@ import wave
 
 PREFIX='TitanSFX:'
 CHOICES=('auto','whoosh','bounce','glitch','shake','airy','motionblur','none')
-LABELS=('Automático','Whoosh — Slide','Impacto — Bounce','Glitch — Flicker','Cliques — Shake','Ar — Blur','Névoa — Motion Blur','Sem som')
+LABELS=('Automático','Slide — Whoosh','Bounce — Impacto','Flicker — Glitch','Shake — Cliques','Blur — Ar','Motion Blur — Névoa','Sem som')
 EFFECTS={'flicker':'glitch','shake':'shake','bounce':'bounce','slide':'whoosh','blur':'airy','mblur':'motionblur'}
 ANIMATION_SOUNDS=(('slide','Slide'),('bounce','Bounce'),('flicker','Flicker'),
                   ('shake','Shake'),('blur','Blur'),('mblur','Motion Blur'))
@@ -25,7 +25,36 @@ def effect_for(effects, motion_blur=False):
     if 'blur' in effects:return EFFECTS['blur']
     return None
 
-def plan_events(entries,states,duration):
+def load_animation(entry):
+    try:
+        for marker in (entry['item'].GetMarkers() or {}).values():
+            data=marker.get('customData','')
+            if data.startswith('TitanAnim:'):
+                state=json.loads(data[len('TitanAnim:'):])
+                if isinstance(state,dict) and state.get('version')==1:return state
+    except (AttributeError,TypeError,ValueError):pass
+    return None
+
+def save_animation(entry,state):
+    item=entry['item']
+    data={'version':1,'in':sorted(state.get('in',set())),'out':sorted(state.get('out',set())),
+          'mblur':bool(state.get('mblur')),'duration':state.get('duration',20)}
+    for side in ('in','out'):
+        data['dir_'+side]=state.get('dir_'+side,'none')
+        data['sfx_'+side]=state.get('sfx_'+side,'auto')
+    payload='TitanAnim:'+json.dumps(data,separators=(',',':'))
+    markers=item.GetMarkers() or {}
+    existing=next((frame for frame,m in markers.items() if m.get('customData','').startswith('TitanAnim:')),None)
+    if existing is not None:
+        if markers[existing].get('customData')==payload:return
+        item.UpdateMarkerCustomData(existing,payload)
+    else:
+        length=max(1,int(item.GetEnd())-int(item.GetStart()))
+        frame=next((f for f in range(length) if f not in markers),None)
+        if frame is None:return
+        item.AddMarker(frame,'Blue','Titan Animation','',1,payload)
+
+def plan_events(entries,states,duration,mappings=None):
     events=[]
     for entry in entries:
         item=entry['item']
@@ -34,14 +63,21 @@ def plan_events(entries,states,duration):
         if length<=0:continue
         state=states(entry)
         # Same bounded duration as Animator.render, including its end keyframe.
-        span=min(length,max(2,min(int(duration),max(2,length//2)))+1)
+        span=min(length,max(2,min(int(state.get('duration',duration)),max(2,length//2)))+1)
         for side in ('in','out'):
             choice=state.get('sfx_'+side,'auto')
             active=bool(state.get(side,set()) or state.get('mblur'))
-            effect=(effect_for(state.get(side,set()),state.get('mblur',False)) if choice=='auto' else
-                    choice if choice in EFFECTS.values() and active else None)
-            if effect:
+            animations=[key for key,_ in ANIMATION_SOUNDS if key in state.get(side,set()) or key=='mblur' and state.get('mblur')]
+            effects=[]
+            if choice=='auto':
+                for animation in animations:
+                    mapped=(mappings or {}).get(animation,'auto')
+                    effect=EFFECTS[animation] if mapped=='auto' else mapped
+                    if effect in EFFECTS.values():effects.append((animation,effect))
+            elif choice in EFFECTS.values() and active:effects=[('manual',choice)]
+            for animation,effect in effects:
                 events.append({'uid':str(entry['uid']),'side':side,'effect':effect,
+                    'animation':animation,
                     'start':start if side=='in' else end-span,'frames':span,
                     'gain':1.0 if side=='in' else 0.5})
     return events
@@ -164,10 +200,10 @@ class SoundEffects:
         if result is True:return
         if owned_uid(clip)==str(event['uid']):return
         raise RuntimeError('Could not mark sound ownership.')
-    def sync(self,project,timeline,entries,states,duration,enabled=True):
+    def sync(self,project,timeline,entries,states,duration,enabled=True,mappings=None):
         uids={str(e['uid']) for e in entries}
         if not uids:return 0
-        events=plan_events(entries,states,duration) if enabled else []
+        events=plan_events(entries,states,duration,mappings) if enabled else []
         fps=float(timeline.GetSetting('timelineFrameRate') or 24)
         timeline_id=str(timeline.GetUniqueId()) if hasattr(timeline,'GetUniqueId') else str(id(timeline))
         context=(str(project.GetUniqueId()),timeline_id)

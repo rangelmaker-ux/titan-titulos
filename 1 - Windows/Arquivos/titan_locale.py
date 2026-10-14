@@ -6,6 +6,17 @@ LANGUAGE_NAMES=('Português (Brasil)','English','Español')
 LANG='pt-BR'
 # Portuguese source | English | Spanish
 ROWS='''
+Aplicar à animação|Apply to animation|Aplicar a la animación
+Aplicar todas as animações|Apply all animations|Aplicar todas las animaciones
+Som aplicado a %d animações em %d títulos.|Sound applied to %d animations in %d titles.|Sonido aplicado a %d animaciones en %d títulos.
+Preferência salva. Nenhuma animação correspondente foi encontrada nesta timeline.|Preference saved. No matching animation was found in this timeline.|Preferencia guardada. No se encontró una animación correspondiente en esta línea de tiempo.
+Não foi possível aplicar os sons. Veja os detalhes na janela principal.|Could not apply sounds. See details in the main window.|No se pudieron aplicar los sonidos. Consulta los detalles en la ventana principal.
+Slide — Whoosh|Slide — Whoosh|Deslizar — Whoosh
+Bounce — Impacto|Bounce — Impact|Rebote — Impacto
+Flicker — Glitch|Flicker — Glitch|Parpadeo — Glitch
+Shake — Cliques|Shake — Clicks|Sacudida — Clics
+Blur — Ar|Blur — Air|Desenfoque — Aire
+Motion Blur — Névoa|Motion Blur — Soft Air|Desenfoque de movimiento — Aire suave
 Buscar atualizações|Check for updates|Buscar actualizaciones
 Buscando atualizações…|Checking for updates…|Buscando actualizaciones…
 Seu Titan Titles Studio já está atualizado.|Your Titan Titles Studio is up to date.|Tu Titan Titles Studio está actualizado.

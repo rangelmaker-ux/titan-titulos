@@ -58,15 +58,48 @@ class Features(unittest.TestCase):
             'get_timeline':lambda:(object(),object()),'find_textplus_under_playhead':lambda tl,all_titles=False:titles,
             'tr':locale.translate}
         exec(compile(ast.Module(body=[node],type_ignores=[]),'<sound-map>','exec'),ns)
-        instance=SimpleNamespace(_busy=False,sfx_map_items={'sfx_map_flicker':SimpleNamespace(CurrentIndex=sfx.CHOICES.index('shake')),
+        instance=SimpleNamespace(_busy=False,items={'gsfx':SimpleNamespace(Checked=False),'asfx':SimpleNamespace(Checked=False)},sfx_map_items={'sfx_map_flicker':SimpleNamespace(CurrentIndex=sfx.CHOICES.index('shake')),
             'sfx_map_status':SimpleNamespace(Text='')},sfx_map_window=object(),refresh=lambda **kw:None,
             _anim_carregar=lambda entry:states[entry['uid']],_anim_salvar=lambda entry,state:saved.append(entry['uid']),
             _sync_sounds=lambda entries:sync.extend(entries),sync_buttons=lambda:None,_gstatus=lambda text:None)
         ns['on_apply_sfx_map'](instance,'flicker')
-        self.assertEqual(states['flicker-a']['sfx_in'],'shake')
-        self.assertEqual(states['flicker-b']['sfx_out'],'shake')
+        self.assertEqual(states['flicker-a']['sfx_in'],'auto')
+        self.assertEqual(states['flicker-b']['sfx_out'],'auto')
+        self.assertIn(('TitanTitlesStudio.sfxMap.flicker','shake'),saved)
         self.assertEqual(states['slide']['sfx_in'],'auto')
         self.assertEqual([entry['uid'] for entry in sync],['flicker-a','flicker-b'])
+        self.assertTrue(instance.sfx_enabled)
+        for key,_ in sfx.ANIMATION_SOUNDS:
+            instance.sfx_map_items['sfx_map_'+key]=SimpleNamespace(CurrentIndex=0)
+        sync.clear()
+        ns['on_apply_sfx_map'](instance,'all')
+        self.assertEqual([entry['uid'] for entry in sync],['flicker-a','flicker-b','slide'])
+        for key,_ in sfx.ANIMATION_SOUNDS:self.assertIn(('TitanTitlesStudio.sfxMap.'+key,'auto'),saved)
+        instance._sync_sounds=lambda entries:False
+        ns['on_apply_sfx_map'](instance,'all')
+        self.assertEqual(instance.sfx_map_items['sfx_map_status'].Text,'Não foi possível aplicar os sons. Veja os detalhes na janela principal.')
+    def test_legacy_visible_animation_is_recovered_without_textplus_metadata(self):
+        source=ast.parse((ROOT/'src/Titan Titles Studio.py').read_text(encoding='utf-8'))
+        app=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='App')
+        nodes=[n for n in app.body if isinstance(n,ast.FunctionDef) and n.name in ('_anim_carregar','_anim_detectar')]
+        def input(name,frame=0):
+            if name=='Center':return (.5-.15*max(0,1-frame/20),.5)
+            if name=='Size':return .08
+            if name=='Opacity1':return frame%2 if frame<20 else 1
+            if name=='MotionBlur':return 1
+            return 0
+        tool=SimpleNamespace(GetData=lambda key:None,GetInput=input)
+        entry={'uid':'reopened','tool':tool,'comp':object(),'item':SimpleNamespace(GetMarkers=lambda:{})}
+        state={'in':set(),'out':set(),'mblur':False};saved=[]
+        ns={'ANIM_KEY':'TV_anim','_sound_module':sfx,'visible_range':lambda e:(0,59),
+            'get_blur_tool':lambda *args:None,'get_at':lambda t,n,f:t.GetInput(n,f),'to_xy':lambda v:v}
+        exec(compile(ast.Module(body=nodes,type_ignores=[]),'<legacy-animation>','exec'),ns)
+        instance=SimpleNamespace(anim=SimpleNamespace(dur=20,state=lambda e:state),
+            _anim_salvar=lambda e,st:saved.append(dict(st)))
+        instance._anim_detectar=lambda e,st:ns['_anim_detectar'](instance,e,st)
+        recovered=ns['_anim_carregar'](instance,entry)
+        self.assertEqual(recovered['in'],{'slide','flicker'});self.assertTrue(recovered['mblur'])
+        self.assertTrue(saved)
     def test_about_links_and_clean_main_header(self):
         source=ast.parse((ROOT/'src/Titan Titles Studio.py').read_text(encoding='utf-8'))
         app=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='App')

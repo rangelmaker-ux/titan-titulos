@@ -1,7 +1,9 @@
-Titan Titles Studio v3.3.7
+Titan Titles Studio v3.3.8
 
-The Windows and macOS packages now include the Basic Template bin required for caption generation. The updater also restores this resource on existing installations, and generation reports a clear recovery message if Resolve rejects the import.
+Os sons são aplicados por tipo de animação em toda a timeline. O menu inclui Aplicar à animação e Aplicar todas as animações, com as seis opções nomeadas pelo tipo correspondente.
 
-The About panel includes a manual update check. The animation panel adds a per-animation sound mapping window with an Apply action for matching titles across six styles: Slide, Bounce, Flicker, Shake, Blur, and Motion Blur. Motion Blur has its own softer sound derived from the authorized airy effect. Mac audio-track creation now handles Resolve non-boolean API returns and keeps sound clips frame-aligned.
+O modo Automático atribui o som de cada animação ao início da entrada ou saída. Animações combinadas recebem seus efeitos correspondentes; preferências individuais ficam salvas para novos títulos. Aplicar ativa os efeitos sonoros e substitui os sons anteriores do Titan, preservando as faixas de voz.
 
-Sound synchronization verifies marker creation, track muting/restoration and clip replacement when the Resolve API returns no boolean result. Existing voice clips are preserved, and Titan sound tracks are restored after transcription failures.
+A identificação da animação também é gravada no clipe para sobreviver à reabertura. Títulos antigos sem esses dados são reconhecidos pelas curvas de posição, tamanho, opacidade, blur e Motion Blur. Falhas de sincronização são exibidas em vez de informar aplicação concluída.
+
+Validação: testes de recuperação de curvas, persistência, mapeamento por animação, combinações, atualização e instaladores Windows/macOS. A validação no macOS usa as ferramentas nativas do sistema; a interação dentro do Resolve requer confirmação no computador do usuário.
