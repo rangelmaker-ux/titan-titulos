@@ -5,6 +5,11 @@ import hashlib
 import importlib.util
 import io
 import json
+import queue
+import ssl
+import sys
+import time
+from types import SimpleNamespace
 from pathlib import Path
 import tempfile
 import unittest
@@ -29,6 +34,52 @@ class Updates(unittest.TestCase):
         b.build(self.dist)
         self.archive = self.dist/u.ASSET
         self.current = 'v'+(ROOT/'VERSION').read_text().strip()
+    def test_runloop_receives_check_and_download_results_without_steploop(self):
+        source=ast.parse((ROOT/'src/Titan Titles Studio.py').read_text(encoding='utf-8'))
+        app=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='App')
+        methods=[n for n in app.body if isinstance(n,ast.FunctionDef) and n.name in
+                 ('mostrar_update','_wake_update','_poll_update','_mostrar_update_resultado')]
+        events=queue.Queue()
+        content=self.archive.read_bytes()
+        release={'version':self.current,'sha256':hashlib.sha256(content).hexdigest(),
+                 'url':'https://github.com/'+u.REPO+'/releases/download/'+self.current+'/'+u.ASSET}
+        ns={'ui':SimpleNamespace(QueueEvent=lambda window,name,info:events.put(name)),
+            'checar_atualizacao':lambda detailed:('available',(self.current,release,''))}
+        cls=ast.ClassDef(name='UpdateUI',bases=[],keywords=[],body=methods,decorator_list=[])
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[cls],type_ignores=[])),'<native-runloop>','exec'),ns)
+        instance=ns['UpdateUI']();instance.win=object();instance._relayout=lambda:None
+        instance.items={name:SimpleNamespace(Text='',Enabled=True,Hidden=True)
+                        for name in ('up_txt','up_btn','cx_update')}
+        about={name:SimpleNamespace(Text='',Enabled=True) for name in ('about_update_status','about_update_btn')}
+        instance.about_window=SimpleNamespace(GetItems=lambda:about)
+        instance.mostrar_update(manual=True)
+        self.assertEqual(events.get(timeout=5),'TitanUpdate')
+        instance._poll_update()
+        self.assertEqual(about['about_update_btn'].Text,'Baixar atualização')
+        root=self.base/'Fusion/Scripts/Edit';root.mkdir(parents=True)
+        instance._updater=u.Atualizador(root,notify=instance._wake_update)
+        response=io.BytesIO(content);response.headers={'Content-Length':str(len(content))}
+        with patch.object(u,'open_url',return_value=response):
+            self.assertTrue(instance._updater.iniciar(release))
+            deadline=time.monotonic()+5
+            while about['about_update_btn'].Text!='Instalar':
+                self.assertLess(time.monotonic(),deadline)
+                self.assertEqual(events.get(timeout=5),'TitanUpdate')
+                instance._poll_update()
+        instance._updater.instalar()
+        self.assertEqual((root/'Titan Studio.py').read_bytes(),(ROOT/'src/Titan Titles Studio.py').read_bytes())
+    @unittest.skipUnless(sys.platform=='darwin','Requires macOS certificate store')
+    def test_mac_system_roots_work_without_certifi(self):
+        original=__import__
+        def importer(name,*args,**kwargs):
+            if name in ('certifi','pip._vendor.certifi'):raise ImportError(name)
+            return original(name,*args,**kwargs)
+        u.ssl_context.cache_clear()
+        self.addCleanup(u.ssl_context.cache_clear)
+        with patch('builtins.__import__',side_effect=importer):context=u.ssl_context()
+        self.assertGreater(context.cert_store_stats()['x509_ca'],0)
+        self.assertEqual(context.verify_mode,ssl.CERT_REQUIRED)
+        self.assertTrue(context.check_hostname)
     def test_packages_and_permissions(self):
         data = u.validate_package(self.archive, self.current)
         self.assertIn('icons/titan_word.png', data)

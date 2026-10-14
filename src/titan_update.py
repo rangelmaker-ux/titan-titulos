@@ -9,6 +9,8 @@ import queue
 import re
 import shutil
 import ssl
+import subprocess
+from functools import lru_cache
 import sys
 import tempfile
 import threading
@@ -40,17 +42,30 @@ def allowed_url(url):
         raise ValueError('Repositório de atualização inválido.')
     return url
 
+@lru_cache(maxsize=1)
+def ssl_context():
+    context=ssl.create_default_context()
+    for module in ('certifi','pip._vendor.certifi'):
+        try:
+            provider=__import__(module,fromlist=['where'])
+            context.load_verify_locations(provider.where())
+            break
+        except (ImportError,OSError,ssl.SSLError):pass
+    if sys.platform=='darwin':
+        # Resolve's embedded Python may not have Python.org's CA bundle.
+        # Read only Apple's public root certificates, without modifying trust.
+        roots=subprocess.run(['/usr/bin/security','find-certificate','-a','-p',
+            '/System/Library/Keychains/SystemRootCertificates.keychain'],
+            capture_output=True,text=True,timeout=10,check=True)
+        context.load_verify_locations(cadata=roots.stdout)
+    return context
+
 def open_url(url):
     class Redirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):
             allowed_url(newurl)
             return super().redirect_request(req, fp, code, msg, headers, newurl)
-    context = ssl.create_default_context()
-    try:
-        import certifi
-        context.load_verify_locations(certifi.where())
-    except ImportError:
-        pass
+    context = ssl_context()
     opener = urllib.request.build_opener(Redirect(), urllib.request.HTTPSHandler(context=context))
     return opener.open(urllib.request.Request(allowed_url(url), headers={
         'User-Agent': 'Titan-Titles-Studio-Updater', 'Accept': 'application/vnd.github+json'}), timeout=10)
@@ -202,12 +217,18 @@ def install_package(path, expected_version, install_root):
     return str(backup)
 
 class Atualizador:
-    def __init__(self, install_root):
+    def __init__(self, install_root, notify=None):
         self.install_root = install_root
         self.eventos = queue.Queue()
         self.ocupado = False
         self.arquivo = None
         self.release = None
+        self.notify=notify
+    def _emit(self,event):
+        self.eventos.put(event)
+        if self.notify:
+            try:self.notify()
+            except Exception:pass
     def iniciar(self, release):
         if self.ocupado or self.arquivo:
             return False
@@ -229,15 +250,15 @@ class Atualizador:
                         if count > MAX_BYTES:
                             raise ValueError('Pacote excede o limite de tamanho.')
                         digest.update(chunk); output.write(chunk)
-                        self.eventos.put(('progresso', count, total))
+                        self._emit(('progresso', count, total))
                 if (total and count != total) or digest.hexdigest() != release['sha256']:
                     raise ValueError('Download incompleto ou inválido.')
                 validate_package(path, release['version'])
                 self.arquivo = path
-                self.eventos.put(('pronto', path))
+                self._emit(('pronto', path))
             except Exception:
                 shutil.rmtree(folder, ignore_errors=True)
-                self.eventos.put(('erro', 'Não foi possível baixar. Confira a conexão e tente novamente.'))
+                self._emit(('erro', 'Não foi possível baixar. Confira a conexão e tente novamente.'))
             finally:
                 self.ocupado = False
         threading.Thread(target=worker, daemon=True).start()

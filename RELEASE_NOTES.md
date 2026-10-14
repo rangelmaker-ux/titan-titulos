@@ -1,9 +1,9 @@
-Titan Titles Studio v3.3.8
+Titan Titles Studio v3.3.9
 
-Os sons são aplicados por tipo de animação em toda a timeline. O menu inclui Aplicar à animação e Aplicar todas as animações, com as seis opções nomeadas pelo tipo correspondente.
+Corrige o recebimento de atualizações no macOS: os resultados da busca e do download agora chegam à interface por eventos nativos, funcionando tanto com RunLoop quanto com StepLoop. O About recebe os estados de buscar, baixar e instalar sem depender do ciclo de eventos do Windows.
 
-O modo Automático atribui o som de cada animação ao início da entrada ou saída. Animações combinadas recebem seus efeitos correspondentes; preferências individuais ficam salvas para novos títulos. Aplicar ativa os efeitos sonoros e substitui os sons anteriores do Titan, preservando as faixas de voz.
+O atualizador usa os certificados públicos do macOS para validar HTTPS, mesmo quando o Python do Resolve não tem certifi. A verificação de certificados, os limites de download e a validação SHA-256 permanecem ativos.
 
-A identificação da animação também é gravada no clipe para sobreviver à reabertura. Títulos antigos sem esses dados são reconhecidos pelas curvas de posição, tamanho, opacidade, blur e Motion Blur. Falhas de sincronização são exibidas em vez de informar aplicação concluída.
+Se o Mac não consegue receber a correção pelo atualizador antigo, instale Titan-Titles-Studio-Mac-3.3.9.pkg uma vez e reabra o Resolve. As próximas atualizações podem ser buscadas em About > Buscar atualizações.
 
-Validação: testes de recuperação de curvas, persistência, mapeamento por animação, combinações, atualização e instaladores Windows/macOS. A validação no macOS usa as ferramentas nativas do sistema; a interação dentro do Resolve requer confirmação no computador do usuário.
+Validação: fluxo completo de busca, download e instalação com eventos nativos sem StepLoop; certificados nativos sem certifi; instalador e reinstalação no macOS; acesso HTTPS ao GitHub a partir do macOS.
