@@ -1,21 +1,67 @@
-﻿#!/bin/bash
-DIR="$( cd "$( dirname """" )" && pwd )"
+#!/bin/bash
+set -euo pipefail
+DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 TARGET="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
-TARGET_STORE="$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp/Data/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
-clear
-echo "============================================================"
-echo "        TITAN TITLES STUDIO v1.0 - @rangelmaker_"
-echo "          Instalador Automatico para DaVinci Resolve (macOS)"
-echo "============================================================"
-echo ""
-mkdir -p "$TARGET/icons"
-cp -f "$DIR/Titan Titles Studio.py" "$TARGET/"
-cp -rf "$DIR/icons/"* "$TARGET/icons/"
-if [ -d "$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp" ]; then
-    mkdir -p "$TARGET_STORE/icons"
-    cp -f "$DIR/Titan Titles Studio.py" "$TARGET_STORE/"
-    cp -rf "$DIR/icons/"* "$TARGET_STORE/icons/"
+STORE="$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp/Data/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
+printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.2.0\n  TITÂNIO & AZUL ELÉTRICO  •  @rangelmaker_\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
+printf '\nLayouts, tipografia e movimento para DaVinci Resolve.\nAtualizações pelo GitHub com backup automático.\n\n'
+ACTION=$(/usr/bin/osascript <<'APPLESCRIPT'
+button returned of (display dialog "Seu próximo título começa aqui.\n\nFeche o Titan antes de instalar ou remover.\nAtualizações pelo GitHub com backup automático." with title "Titan Titles Studio" buttons {"Cancelar", "Remover", "Instalar"} default button "Instalar" cancel button "Cancelar")
+APPLESCRIPT
+) || exit 0
+CLEAN=no
+if [ "$ACTION" = "Instalar" ]; then
+    for part in "Titan Titles Studio.py" "titan_update.py" "icons"; do
+        if [ ! -e "$DIR/$part" ]; then
+            /usr/bin/osascript -e 'display alert "Titan Titles Studio" message "Pacote incompleto. Extraia o ZIP inteiro antes de instalar." as critical'
+            exit 1
+        fi
+    done
+    CLEAN=$(/usr/bin/osascript <<'APPLESCRIPT'
+button returned of (display dialog "Deseja remover os arquivos da versão Titan anterior antes de reinstalar?\n\nUm backup será preservado. Outros plugins não serão removidos." with title "Titan Titles Studio" buttons {"Cancelar", "Manter", "Remover antiga"} default button "Manter" cancel button "Cancelar")
+APPLESCRIPT
+    ) || exit 0
+else
+    /usr/bin/osascript -e 'display dialog "Remover o Titan Titles Studio? Um backup será preservado. Outros plugins não serão removidos." with title "Titan Titles Studio" buttons {"Cancelar", "Remover"} default button "Cancelar" cancel button "Cancelar"' >/dev/null || exit 0
 fi
-echo " [OK] Titan Titles Studio instalado com sucesso no seu Mac!"
-echo ""
-read -p "Pressione Enter para fechar..."
+validate() {
+    case "$1" in "$TARGET"|"$STORE") ;; *) echo 'Destino inesperado.'; exit 1;; esac
+    local current="$1"
+    while [ "$current" != / ]; do
+        if [ -L "$current" ]; then echo 'Pasta redirecionada; instalação interrompida.'; exit 1; fi
+        current=$(dirname "$current")
+    done
+    for current in "$1/Titan Titles Studio.py" "$1/TitanTitlesStudio" "$1/TitanTitlesStudio-backups"; do
+        if [ -L "$current" ]; then echo 'Arquivo redirecionado; instalação interrompida.'; exit 1; fi
+    done
+}
+install_target() {
+    local target="$1" backup
+    validate "$target"
+    mkdir -p "$target/TitanTitlesStudio-backups"
+    backup=$(mktemp -d "$target/TitanTitlesStudio-backups/install-XXXXXXXX")
+    [ ! -f "$target/Titan Titles Studio.py" ] || cp -p "$target/Titan Titles Studio.py" "$backup/"
+    [ ! -d "$target/TitanTitlesStudio" ] || cp -R "$target/TitanTitlesStudio" "$backup/"
+    if [ "$ACTION" = "Remover" ] || [ "$CLEAN" = "Remover antiga" ]; then
+        rm -f "$target/Titan Titles Studio.py"
+        rm -rf "$target/TitanTitlesStudio"
+    fi
+    if [ "$ACTION" = "Instalar" ]; then
+        if ! (mkdir -p "$target/TitanTitlesStudio" && cp -R "$DIR/icons" "$target/TitanTitlesStudio/" && cp "$DIR/titan_update.py" "$target/TitanTitlesStudio/" && cp "$DIR/Titan Titles Studio.py" "$target/"); then
+            rm -f "$target/Titan Titles Studio.py"
+            rm -rf "$target/TitanTitlesStudio"
+            [ ! -f "$backup/Titan Titles Studio.py" ] || cp "$backup/Titan Titles Studio.py" "$target/"
+            [ ! -d "$backup/TitanTitlesStudio" ] || cp -R "$backup/TitanTitlesStudio" "$target/"
+            echo "Falha. Backup: $backup"
+            return 1
+        fi
+    fi
+    printf '✓ %s\n  Backup: %s\n' "$ACTION" "$backup"
+}
+install_target "$TARGET"
+if [ -d "$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp" ]; then install_target "$STORE"; fi
+if [ "$ACTION" = "Instalar" ]; then
+    /usr/bin/osascript -e 'display dialog "Instalado!\n\nNo DaVinci Resolve: Workspace > Scripts > Edit > Titan Titles Studio.\nReabra o plugin para carregar esta versão." with title "Titan Titles Studio" buttons {"Concluir"} default button "Concluir"'
+else
+    /usr/bin/osascript -e 'display dialog "Titan removido.\n\nBackup preservado; outros plugins foram mantidos." with title "Titan Titles Studio" buttons {"Concluir"} default button "Concluir"'
+fi

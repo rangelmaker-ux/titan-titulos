@@ -87,136 +87,6 @@ IDIOMA = "pt"
 APP_ALVO = "davinci"   
 APP_NAME = "Titan Titles Studio"
 
-"""Download do instalador dentro do produto; nenhuma instalação silenciosa."""
-class Atualizador:
-    def __init__(self, produto, idioma, api, plataforma=None):
-        import sys
-        import queue
-        self.produto, self.idioma, self.api = produto, idioma, api
-        self.plataforma = plataforma or sys.platform
-        self.eventos = queue.Queue()
-        self.ocupado = False
-        self.arquivo = None
-
-    def _url(self, url):
-        from urllib.parse import urlsplit
-        host = urlsplit(self.api).hostname
-        p = urlsplit(url)
-        if p.scheme != 'https' or p.hostname not in (host, 'titulosvirais.com', 'www.titulosvirais.com') or p.username or p.password or p.port not in (None, 443):
-            raise ValueError("Endereço de atualização inválido.")
-        return url
-
-    def _abrir(self, url):
-        import urllib.request
-        import ssl
-        owner = self
-        class Redirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self, req, fp, code, msg, headers, newurl):
-                owner._url(newurl)
-                return super().redirect_request(req, fp, code, msg, headers, newurl)
-        context = ssl.create_default_context()
-        try:
-            import certifi
-            context.load_verify_locations(certifi.where())
-        except ImportError:
-            pass
-        opener = urllib.request.build_opener(Redirect(), urllib.request.HTTPSHandler(context=context))
-        return opener.open(urllib.request.Request(self._url(url), headers={'User-Agent': 'TitulosVirais-Updater'}), timeout=30)
-
-    def _baixar(self, link):
-        import os
-        import tempfile
-        from urllib.parse import urlsplit, urljoin, unquote
-        from html.parser import HTMLParser
-        ext = '.pkg' if self.plataforma == 'darwin' else '.exe' if self.plataforma.startswith('win') else None
-        if not ext:
-            raise ValueError("Sistema não suportado.")
-        if self.produto not in ('davinci', 'capcut', 'premiere') or self.idioma not in ('pt', 'es'):
-            raise ValueError("Produto de atualização inválido.")
-        url = self._url(link)
-        if not urlsplit(url).path.lower().endswith(ext):
-            with self._abrir(url) as page:
-                html = page.read(2 * 1024 * 1024 + 1)
-                if len(html) > 2 * 1024 * 1024:
-                    raise ValueError("Página de atualização inválida.")
-                base = page.geturl()
-            links = []
-            class Anchors(HTMLParser):
-                def handle_starttag(self, tag, attrs):
-                    a = dict(attrs)
-                    if tag == 'a' and a.get('href') and a.get('lang') == self_idioma:
-                        links.append(urljoin(base, a['href']))
-            self_idioma = self.idioma
-            parser = Anchors(); parser.feed(html.decode('utf-8'))
-            nome = 'Titulos Virales' if self.idioma == 'es' else 'Titulos Virais'
-            pasta = {'davinci': 'baixar', 'capcut': 'capcut', 'premiere': 'premiere'}[self.produto]
-            links = [u for u in links if urlsplit(u).path.lower().endswith(ext)
-                     and unquote(urlsplit(u).path).split('/')[-1].startswith(nome)
-                     and 'compatibilidade' not in unquote(urlsplit(u).path).casefold()
-                     and 'compatibilidad' not in unquote(urlsplit(u).path).casefold()
-                     and urlsplit(u).path.startswith('/' + pasta + '/')]
-            if len(set(links)) != 1:
-                raise ValueError("Instalador deste sistema não encontrado.")
-            url = self._url(links[0])
-        pasta = tempfile.mkdtemp(prefix='titulosvirais-update-')
-        parcial = os.path.join(pasta, 'instalador' + ext + '.part')
-        final = os.path.join(pasta, 'instalador' + ext)
-        try:
-            with self._abrir(url) as response, open(parcial, 'wb') as output:
-                total = int(response.headers.get('Content-Length') or 0)
-                if total > 1024 ** 3:
-                    raise ValueError("Instalador excede o limite de tamanho.")
-                recebido, magic = 0, b''
-                while True:
-                    chunk = response.read(256 * 1024)
-                    if not chunk:
-                        break
-                    if not magic:
-                        magic = chunk[:4]
-                    recebido += len(chunk)
-                    if recebido > 1024 ** 3:
-                        raise ValueError("Instalador excede o limite de tamanho.")
-                    output.write(chunk)
-                    self.eventos.put(('progresso', recebido, total))
-                if recebido < 1024 or (total and recebido != total):
-                    raise ValueError("Download incompleto. Tente novamente.")
-                if (ext == '.pkg' and magic != b'xar!') or (ext == '.exe' and magic[:2] != b'MZ'):
-                    raise ValueError("O download não é um instalador válido.")
-            os.replace(parcial, final)
-            return final
-        except Exception:
-            import shutil
-            shutil.rmtree(pasta, ignore_errors=True)
-            raise
-
-    def iniciar(self, link):
-        import threading
-        if self.ocupado or self.arquivo:
-            return False
-        self.ocupado = True
-        def trabalho():
-            try:
-                self.arquivo = self._baixar(link)
-                self.eventos.put(('pronto', self.arquivo))
-            except Exception as erro:
-                self.eventos.put(('erro', str(erro)))
-            finally:
-                self.ocupado = False
-        threading.Thread(target=trabalho, daemon=True).start()
-        return True
-
-    def instalar(self):
-        import os
-        import subprocess
-        if not self.arquivo or not os.path.isfile(self.arquivo):
-            raise ValueError("Baixe a atualização primeiro.")
-        if self.plataforma == 'darwin':
-            subprocess.Popen(['/usr/bin/open', self.arquivo], close_fds=True)
-        elif self.plataforma.startswith('win'):
-            os.startfile(self.arquivo)
-        else:
-            raise ValueError("Sistema não suportado.")
-
 """Planeja cortes e modelos juntos, preservando a sequência e os tempos da fala."""
 
 def _pl_dupla(indices, textos):
@@ -310,7 +180,7 @@ _tv_texto = _tv_types.ModuleType('tv_texto')
 exec('# -*- coding: utf-8 -*-\n"""Caixa de legendas PT/ES, sem rede, modelo linguístico ou dependências.\n\nO léxico abaixo foi escrito para este projeto, não copiado de um corpus ou\ndicionário externo. Só palavras comuns reconhecidas perdem a capitalização;\nnomes, marcas, siglas e caixa mista conservam a grafia recebida do Whisper.\n\nÉ uma normalização conservadora, NÃO reconhecimento perfeito de entidades.\nPalavras desconhecidas podem continuar com maiúscula. Uma palavra comum usada\ncomo nome precisa de contexto ou da lista de ambiguidades para ser protegida.\nOcorrências em minúsculas ajudam apenas com palavra desconhecida no INTERIOR\nde um bloco, nunca com nome desconhecido que inicia bloco/frase. Não inventa\nacentos, capitalização de nomes nem correções ortográficas.\n"""\n\nfrom collections import Counter\nimport unicodedata\n\n\ndef _chave(texto):\n    return unicodedata.normalize("NFC", texto).casefold()\n\n\ndef _palavras(texto):\n    return frozenset(_chave(p) for p in texto.split())\n\n\n# Formas explícitas: não aplicar sufixos genéricos a sobrenomes ou marcas.\nCOMUNS = {\n    "pt": _palavras("""\n        final finais início inícios começo começos vivo vive vivem vivemos viver\n        a à às o os as um uma uns umas de do da dos das em no na nos nas num numa\n        nuns numas ao aos pelo pela pelos pelas por para pra pro pras pros com sem\n        sob sobre entre até após antes desde contra durante perante através\n        e ou mas porém contudo todavia entretanto nem senão porque pois portanto\n        logo então assim embora apesar enquanto quando onde aonde como conforme\n        caso se que quê quem qual quais quanto quanta quantos quantas cujo cuja\n        cujos cujas este esta estes estas esse essa esses essas aquele aquela\n        aqueles aquelas aquilo isto isso eu tu você vocês ele ela eles elas nós\n        vós me mim comigo te ti contigo lhe lhes conosco convosco si consigo\n        meu minha meus minhas teu tua teus tuas seu sua seus suas nosso nossa\n        nossos nossas vosso vossa alguém ninguém algo nada tudo cada outro outra\n        outros outras qualquer quaisquer algum alguma alguns algumas nenhum\n        nenhuma todos todas todo toda mesmo mesma mesmos mesmas próprio própria\n        próprios próprias muito muita muitos muitas pouco pouca poucos poucas\n        bastante bastantes demais mais menos tanto tanta tantos tantas tão\n        sim não também só somente apenas ainda já nunca sempre às vezes talvez\n        quase aqui aí ali lá cá hoje ontem amanhã agora depois cedo tarde antes\n        novamente novamente realmente provavelmente certamente normalmente\n        geralmente finalmente exatamente simplesmente principalmente totalmente\n        completamente rapidamente lentamente facilmente dificilmente\n        infelizmente felizmente imediatamente atualmente praticamente\n        primeiro primeira primeiros primeiras segundo segunda segundos segundas\n        terceiro terceira últimos últimas último última próximo próxima próximos\n        próximas melhor melhores pior piores maior maiores menor menores\n        sou és é somos são era eras éramos eram fui foste foi fomos foram serei\n        será serão seria seriam seja sejam sendo sido ser estar estou está estamos\n        estão estava estavam estive esteve estivemos estiveram estará estarão\n        estaria estariam esteja estejam estando estado tá tô tava ter tenho tem\n        temos têm tinha tinham tive teve tivemos tiveram terá terão teria teriam\n        tenha tenham tendo tido haver há havia haviam houve haverá fazer faço faz\n        fazemos fazem fazia faziam fiz fez fizemos fizeram fará farão faria fariam\n        faça façam fazendo feito feita feitos feitas poder posso pode podemos\n        podem podia podiam pude pôde puderam poderá poderão poderia poderiam\n        possa possam podendo querer quero quer queremos querem queria queriam\n        quis quiseram quererá queira queiram querendo saber sei sabe sabemos\n        sabem sabia sabiam soube souberam saberá saiba saibam sabendo conhecido\n        conhecer conheço conhece conhecemos conhecem conhecia conheci conheceu\n        chamar chamo chama chamamos chamam chamei chamou chamando chamado chamada\n        dizer digo diz dizemos dizem dizia disse disseram dirá dirão dizerem diga\n        digam dizendo dito dita falar falo fala falamos falam falava falei falou\n        falaram falando falado ver vejo vê vemos veem via vi viu vimos viram verá\n        vejam veja vendo visto vista ouvir ouço ouve ouvimos ouvem ouvi ouviu\n        ouviram ouvindo escutar escuta escutei escutando olhar olha olhe olhando\n        ir vou vai vamos vão ia iam fui foi fomos foram indo ido voltar volto\n        volta voltamos voltam voltei voltou voltaram voltando vir venho vem vêm\n        vinha vim veio vieram vindo chegar chego chega chegamos chegam cheguei\n        chegou chegaram chegando sair saio sai saímos saem saí saiu saíram saindo\n        ficar fico fica ficamos ficam ficava fiquei ficou ficaram ficando deixar\n        deixo deixa deixamos deixam deixei deixou deixaram deixando trazer trago\n        traz trazemos trazem trouxe trouxeram trazendo levar levo leva levamos\n        levam levei levou levaram levando colocar coloco coloca colocamos colocam\n        coloquei colocou colocando tirar tiro tira tiramos tiram tirei tirou\n        tirando dar dou dá damos dão dava dei deu deram dando dado receber recebo\n        recebe recebemos recebem recebi recebeu recebendo pegar pego pega pegamos\n        pegam peguei pegou pegando passar passo passa passamos passam passei\n        passou passaram passando começar começo começa começamos começam comecei\n        começou começaram começando acabar acabo acaba acabamos acabam acabei\n        acabou acabaram acabando terminar termino termina terminamos terminam\n        terminei terminou terminando continuar continuo continua continuamos\n        continuam continuei continuou continuando parar paro para paramos param\n        parei parou pararam parando precisar preciso precisa precisamos precisam\n        precisava precisei precisou precisando dever devo deve devemos devem\n        devia deveria deveriam aprender aprendo aprende aprendemos aprendem\n        aprendi aprendeu aprendendo ensinar ensino ensina ensinamos ensinam\n        ensinei ensinou ensinando entender entendo entende entendemos entendem\n        entendia entendi entendeu entenderam entendendo perceber percebo percebe\n        percebemos percebem percebi percebeu percebendo pensar penso pensa\n        pensamos pensam pensei pensou pensaram pensando acreditar acredito\n        acredita acreditamos acreditam acreditei acreditou acreditando lembrar\n        lembro lembra lembramos lembram lembrei lembrou lembrando esquecer\n        esqueço esquece esquecemos esquecem esqueci esqueceu esquecendo gostar\n        gosto gosta gostamos gostam gostei gostou gostaram gostando sentir sinto\n        sente sentimos sentem senti sentiu sentiram sentindo conseguir consigo\n        consegue conseguimos conseguem consegui conseguiu conseguindo tentar\n        tento tenta tentamos tentam tentei tentou tentaram tentando ajudar ajudo\n        ajuda ajudamos ajudam ajudei ajudou ajudando trabalhar trabalho trabalha\n        trabalhamos trabalham trabalhei trabalhou trabalhando usar uso usa usamos\n        usam usava usei usou usaram usando utilizado utilizada utilizar utiliza\n        criar crio cria criamos criam criei criou criaram criando criado criada\n        escrever escrevo escreve escrevemos escrevem escrevi escreveu escreveram\n        escrevendo escrito escrita escritos escritas ler leio lê lemos leem li\n        leu leram lendo lido lida gravar gravo grava gravamos gravam gravei gravou\n        gravando editar edito edita editamos editam editei editou editando\n        publicar publico publica publicamos publicam publiquei publicou publicando\n        abrir abro abre abrimos abrem abri abriu abriram abrindo aberto aberta\n        fechar fecho fecha fechamos fecham fechei fechou fechando fechado fechada\n        selecionar seleciono seleciona selecione selecionado selecionada\n        escolher escolho escolhe escolhemos escolhem escolhi escolheu escolhendo\n        salvar salvo salva salvamos salvam salvei salvou salvando baixar baixo\n        baixa baixamos baixam baixei baixou baixando instalar instalo instala\n        instalamos instalam instalei instalou instalando instalado instalada\n        atualizar atualiza atualizado atualizada corrigir corrijo corrige corrigi\n        corrigiu corrigindo corrigido corrigida funcionar funciona funcionam\n        funcionou funcionando melhorar melhoro melhora melhoramos melhoram\n        melhorei melhorou melhorando mudar mudo muda mudamos mudam mudei mudou\n        mudaram mudando transformar transforma transformando transformado\n        transformada interromper interrompo interrompe interrompi interrompeu\n        interrompendo interrompido interrompida interrompidos interrompidas\n        explicar explico explica explicamos explicam expliquei explicou explicando\n        mostrar mostro mostra mostramos mostram mostrei mostrou mostrando\n        procurar procuro procura procuramos procuram procurei procurou procurando\n        encontrar encontro encontra encontramos encontram encontrei encontrou\n        encontrando perder perco perde perdemos perdem perdi perdeu perdendo\n        ganhar ganho ganha ganhamos ganham ganhei ganhou ganhando comprar compro\n        compra compramos compram comprei comprou comprando vender vendo vende\n        vendemos vendem vendi vendeu vendendo pagar pago paga pagamos pagam paguei\n        pagou pagando valer vale valem valeu valendo existir existe existem\n        existia existir existirão acontece acontecer aconteceu acontecendo\n        verdade problema problemas solução soluções dúvida dúvidas pergunta\n        perguntas resposta respostas exemplo exemplos momento momentos tempo\n        tempos dia dias semana semanas mês meses ano anos hora horas minuto\n        minutos segundo segundos pessoa pessoas gente vida vidas mundo coisa\n        coisas forma formas maneira maneiras jeito jeitos parte partes vez vezes\n        ponto pontos lado lados lugar lugares situação situações caso casos\n        resultado resultados objetivo objetivos oportunidade oportunidades\n        experiência experiências história histórias informação informações\n        conhecimento conhecimentos ideia ideias pensamento pensamentos atenção\n        interesse vontade necessidade necessidades dificuldade dificuldades\n        possibilidade possibilidades diferença diferenças qualidade quantidade\n        capacidade habilidade habilidades criatividade produtividade velocidade\n        importância motivo motivos razão razões sentido significado foco esforço\n        energia processo processos método métodos estratégia estratégias sistema\n        sistemas ferramenta ferramentas recurso recursos etapa etapas ação ações\n        decisão decisões escolha escolhas mudança mudanças desenvolvimento\n        crescimento aprendizagem aprendizado organização planejamento comunicação\n        educação saúde alimentação exercício exercícios comportamento conteúdo\n        conteúdos vídeo vídeos áudio áudios imagem imagens foto fotos texto\n        textos palavra palavras frase frases legenda legendas linha linhas\n        principal principais secundário secundária secundários secundárias herói\n        apoio apoios tamanho tamanhos largura altura posição posições margem\n        margens fonte fontes cor cores modelo modelos animação animações prévia\n        horizontal vertical proporção proporções projeto projetos programa\n        programas aplicativo aplicativos computador computadores arquivo arquivos\n        pasta pastas versão versões instalação atualização tela telas janela\n        janelas botão botões opção opções ajuste ajustes controle controles\n        português espanhol inglês idioma idiomas cliente clientes compra compras\n        empresa empresas equipe equipes dinheiro preço preços valor valores\n        produto produtos serviço serviços mercado negócio negócios trabalho\n        trabalhos carreira profissão família amigo amigos amiga amigas filho\n        filhos filha filhas pai mãe casa escola faculdade universidade curso\n        cursos aula aulas professor professora aluno alunos livro livros página\n        páginas mensagem mensagens nome nomes número números cidade país países\n        bom boa bons boas ruim ruins bonito bonita bonitos bonitas grande grandes\n        pequeno pequena pequenos pequenas novo nova novos novas velho velha\n        certo certa certos certas errado errada errados erradas pronto pronta\n        prontos prontas fácil fáceis difícil difíceis simples importante\n        importantes interessante interessantes possível impossíveis impossível\n        necessário necessária necessários necessárias diferente diferentes igual\n        iguais parecido parecida forte fortes fraco fraca rápido rápida rápidos\n        rápidas lento lenta alto alta altos altas baixo baixa baixos baixas\n        longe perto junto juntos juntas separado separada completo completa\n        completado feito fácil feliz felizes triste tristes tranquilo tranquila\n        seguro segura criativo criativa criativos criativas dinâmico dinâmica\n        automático automática atualizado atualizada real reais verdadeiro\n        verdadeira natural naturais pessoal profissional útil úteis gratuito\n        gratuita livre livres especial especiais positivo positiva negativo\n        negativa ativo ativa aberto aberta fechado fechada local locais normal\n        normais básico básica básico avançado avançada incrível incrível\n        incrível perfeito perfeita obrigado obrigada parabéns desculpa desculpe\n        olá oi obrigado obrigada beleza certo pronto enfim inclusive afinal\n        sozinho sozinha sozinhos sozinhas roteiro roteiros ótimo ótima ótimos ótimas\n    """),\n    "es": _palavras("""\n        final finales inicio inicios comienzo comienzos vivo vive viven vivimos vivir\n        a al ante bajo con contra de del desde durante en entre hacia hasta\n        mediante para por según sin sobre tras el la los las un una unos unas\n        y e o u ni pero sino aunque porque pues entonces así mientras cuando\n        donde adonde como conforme si que qué quien quién quienes quiénes cual\n        cuál cuales cuáles cuanto cuánto cuanta cuánta cuantos cuántos cuantas\n        cuántas cuyo cuya cuyos cuyas yo tú él ella usted nosotros nosotras\n        vosotros vosotras ellos ellas ustedes me mí conmigo te ti contigo se sí\n        consigo lo le les nos os mi mis tu tus su sus mío mía míos mías tuyo tuya\n        tuyos tuyas suyo suya suyos suyas nuestro nuestra nuestros nuestras\n        vuestro vuestra vuestros vuestras este esta estos estas ese esa esos esas\n        aquel aquella aquellos aquellas aquello esto eso todo toda todos todas\n        algo alguien nada nadie cada otro otra otros otras alguno alguna algunos\n        algunas ninguno ninguna cualquier cualquiera cualesquiera mismo misma\n        mismos mismas propio propia propios propias mucho mucha muchos muchas\n        poco poca pocos pocas tanto tanta tantos tantas bastante bastantes\n        demasiado demasiada más menos muy tan también tampoco solo sola solos solas sólo\n        solamente apenas aún aun todavía ya nunca siempre jamás quizá quizás\n        casi aquí ahí allí acá allá hoy ayer mañana ahora después antes luego\n        pronto temprano tarde nuevamente otra realmente probablemente ciertamente\n        normalmente generalmente finalmente exactamente simplemente principalmente\n        totalmente completamente rápidamente lentamente fácilmente difícilmente\n        inmediatamente actualmente prácticamente especialmente lamentablemente\n        primero primera primeros primeras segundo segunda segundos segundas\n        tercero tercera último última últimos últimas próximo próxima próximos\n        próximas mejor mejores peor peores mayor mayores menor menores\n        soy eres es somos sois son era eras éramos eran fui fuiste fue fuimos\n        fueron seré será serán sería serían sea sean siendo sido ser estar estoy\n        estás está estamos están estaba estaban estuve estuvo estuvimos estuvieron\n        estará estarán estaría estén esté estando estado tener tengo tienes tiene\n        tenemos tienen tenía tenían tuve tuvo tuvimos tuvieron tendrá tendrán\n        tendría tenga tengan teniendo tenido haber he has ha hemos han había\n        habían hubo habrá habrán haya hayan hacer hago haces hace hacemos hacen\n        hacía hacían hice hizo hicimos hicieron hará harán haría hagan haga\n        haciendo hecho hecha hechos hechas poder puedo puedes puede podemos pueden\n        podía podían pude pudo pudimos pudieron podrá podrán podría podrían pueda\n        puedan pudiendo querer quiero quieres quiere queremos quieren quería\n        querían quise quiso quisieron quiera quieran queriendo saber sé sabes sabe\n        sabemos saben sabía sabían supe supo supieron sabrá sepan sepa sabiendo\n        conocer conozco conoce conocemos conocen conocía conocí conoció conociendo\n        decir digo dices dice decimos dicen decía dije dijo dijimos dijeron dirá\n        dirán diría diga digan diciendo dicho dicha hablar hablo hablas habla\n        hablamos hablan hablaba hablé habló hablaron hablando ver veo ves ve vemos\n        ven veía vi vio vimos vieron verá verán vean vea viendo visto vista\n        escuchar escucho escucha escuchamos escuchan escuché escuchó escuchando\n        oír oigo oye oímos oyen oí oyó oyeron oyendo mirar miro mira miramos miran\n        miré miró mirando ir voy vas va vamos vais van iba iban fui fue fuimos\n        fueron yendo ido volver vuelvo vuelve volvemos vuelven volví volvió\n        volviendo venir vengo viene venimos vienen venía vine vino vinieron\n        viniendo llegar llego llega llegamos llegan llegué llegó llegaron llegando\n        salir salgo sale salimos salen salí salió salieron saliendo quedar quedo\n        queda quedamos quedan quedaba quedé quedó quedaron quedando dejar dejo\n        deja dejamos dejan dejé dejó dejaron dejando traer traigo trae traemos\n        traen traje trajo trajeron trayendo llevar llevo lleva llevamos llevan\n        llevé llevó llevaron llevando poner pongo pone ponemos ponen puse puso\n        pusieron poniendo puesto puesta quitar quito quita quitamos quitan quité\n        quitó quitando dar doy das da damos dan daba di dio dieron dando dado\n        recibir recibo recibe recibimos reciben recibí recibió recibiendo tomar\n        tomo toma tomamos toman tomé tomó tomando pasar paso pasa pasamos pasan\n        pasé pasó pasaron pasando empezar empiezo empieza empezamos empiezan\n        empecé empezó empezaron empezando comenzar comienzo comienza comenzamos\n        comienzan comencé comenzó comenzando acabar acabo acaba acabamos acaban\n        acabé acabó acabaron acabando terminar termino termina terminamos terminan\n        terminé terminó terminando continuar continúo continúa continuamos\n        continúan continué continuó continuando parar paro para paramos paran\n        paré paró pararon parando necesitar necesito necesita necesitamos\n        necesitan necesitaba necesité necesitó necesitando deber debo debe\n        debemos deben debía debería deberían aprender aprendo aprende aprendemos\n        aprenden aprendí aprendió aprendiendo enseñar enseño enseña enseñamos\n        enseñan enseñé enseñó enseñando entender entiendo entiende entendemos\n        entienden entendía entendí entendió entendieron entendiendo comprender\n        comprendo comprende comprendí comprendió comprendiendo pensar pienso\n        piensa pensamos piensan pensé pensó pensaron pensando creer creo cree\n        creemos creen creí creyó creyendo recordar recuerdo recuerda recordamos\n        recuerdan recordé recordó recordando olvidar olvido olvida olvidamos\n        olvidan olvidé olvidó olvidando gustar gusto gusta gustan gustó gustando\n        sentir siento siente sentimos sienten sentí sintió sintieron sintiendo\n        conseguir consigo consigue conseguimos consiguen conseguí consiguió\n        consiguiendo lograr logro logra logramos logran logré logró logrando\n        intentar intento intenta intentamos intentan intenté intentó intentando\n        ayudar ayudo ayuda ayudamos ayudan ayudé ayudó ayudando trabajar trabajo\n        trabaja trabajamos trabajan trabajé trabajó trabajando usar uso usa usamos\n        usan usaba usé usó usaron usando utilizar utilizo utiliza utilizamos\n        utilizan utilicé utilizó utilizando crear creo crea creamos crean creé\n        creó crearon creando creado creada escribir escribo escribe escribimos\n        escriben escribí escribió escribieron escribiendo escrito escrita\n        escritos escritas leer leo lee leemos leen leí leyó leyeron leyendo leído\n        leída grabar grabo graba grabamos graban grabé grabó grabando editar edito\n        edita editamos editan edité editó editando publicar publico publica\n        publicamos publican publiqué publicó publicando abrir abro abre abrimos\n        abren abrí abrió abrieron abriendo abierto abierta cerrar cierro cierra\n        cerramos cierran cerré cerró cerrando cerrado cerrada seleccionar\n        selecciono selecciona seleccione seleccionado seleccionada elegir elijo\n        elige elegimos eligen elegí eligió eligiendo guardar guardo guarda\n        guardamos guardan guardé guardó guardando descargar descargo descarga\n        descargamos descargan descargué descargó descargando instalar instalo\n        instala instalamos instalan instalé instaló instalando instalado instalada\n        actualizar actualiza actualizado actualizada corregir corrijo corrige\n        corregí corrigió corrigiendo corregido corregida funcionar funciona\n        funcionan funcionó funcionando mejorar mejoro mejora mejoramos mejoran\n        mejoré mejoró mejorando cambiar cambio cambia cambiamos cambian cambié\n        cambió cambiaron cambiando transformar transforma transformando\n        transformado transformada interrumpir interrumpo interrumpe interrumpí\n        interrumpió interrumpiendo interrumpido interrumpida interrumpidos\n        interrumpidas explicar explico explica explicamos explican expliqué\n        explicó explicando mostrar muestro muestra mostramos muestran mostré\n        mostró mostrando buscar busco busca buscamos buscan busqué buscó buscando\n        encontrar encuentro encuentra encontramos encuentran encontré encontró\n        encontrando perder pierdo pierde perdemos pierden perdí perdió perdiendo\n        ganar gano gana ganamos ganan gané ganó ganando comprar compro compra\n        compramos compran compré compró comprando vender vendo vende vendemos\n        venden vendí vendió vendiendo pagar pago paga pagamos pagan pagué pagó\n        pagando valer vale valen valió valiendo existir existe existen existía\n        existirán suceder sucede sucedió sucediendo ocurrir ocurre ocurrió\n        verdad problema problemas solución soluciones duda dudas pregunta\n        preguntas respuesta respuestas ejemplo ejemplos momento momentos tiempo\n        tiempos día días semana semanas mes meses año años hora horas minuto\n        minutos segundo segundos persona personas gente vida vidas mundo cosa\n        cosas forma formas manera maneras modo modos parte partes vez veces\n        punto puntos lado lados lugar lugares situación situaciones caso casos\n        resultado resultados objetivo objetivos oportunidad oportunidades\n        experiencia experiencias historia historias información informaciones\n        conocimiento conocimientos idea ideas pensamiento pensamientos atención\n        interés voluntad necesidad necesidades dificultad dificultades\n        posibilidad posibilidades diferencia diferencias calidad cantidad\n        capacidad habilidad habilidades creatividad productividad velocidad\n        importancia motivo motivos razón razones sentido significado enfoque\n        esfuerzo energía proceso procesos método métodos estrategia estrategias\n        sistema sistemas herramienta herramientas recurso recursos etapa etapas\n        acción acciones decisión decisiones elección elecciones cambio cambios\n        desarrollo crecimiento aprendizaje organización planificación comunicación\n        educación salud alimentación ejercicio ejercicios comportamiento contenido\n        contenidos vídeo vídeos video videos audio audios imagen imágenes foto\n        fotos texto textos palabra palabras frase frases subtítulo subtítulos\n        leyenda leyendas línea líneas principal principales secundario secundaria\n        secundarios secundarias héroe apoyo apoyos tamaño tamaños anchura altura\n        posición posiciones margen márgenes fuente fuentes color colores modelo\n        modelos animación animaciones vista previa horizontal vertical proporción\n        proporciones proyecto proyectos programa programas aplicación aplicaciones\n        computadora computadoras ordenador ordenadores archivo archivos carpeta\n        carpetas versión versiones instalación actualización pantalla pantallas\n        ventana ventanas botón botones opción opciones ajuste ajustes control\n        controles portugués español inglés idioma idiomas cliente clientes compra\n        compras empresa empresas equipo equipos dinero precio precios valor\n        valores producto productos servicio servicios mercado negocio negocios\n        trabajo trabajos carrera profesión familia amigo amigos amiga amigas hijo\n        hijos hija hijas padre madre casa escuela facultad universidad curso\n        cursos clase clases profesor profesora alumno alumnos libro libros página\n        páginas mensaje mensajes nombre nombres número números ciudad país países\n        bueno buena buenos buenas mal malo mala malos malas bonito bonita\n        bonitos bonitas grande grandes pequeño pequeña pequeños pequeñas nuevo\n        nueva nuevos nuevas viejo vieja cierto cierta ciertos ciertas correcto\n        correcta incorrecto incorrecta listo lista listos listas fácil fáciles\n        difícil difíciles simple simples sencillo sencilla importante importantes\n        interesante interesantes posible posibles imposible imposibles necesario\n        necesaria necesarios necesarias diferente diferentes igual iguales\n        parecido parecida fuerte fuertes débil débiles rápido rápida rápidos\n        rápidas lento lenta alto alta altos altas bajo baja bajos bajas lejos\n        cerca junto juntos juntas separado separada completo completa feliz\n        felices triste tristes tranquilo tranquila seguro segura creativo\n        creativa creativos creativas dinámico dinámica automático automática\n        actualizado actualizada real reales verdadero verdadera natural naturales\n        personal profesional útil útiles gratuito gratuita libre libres especial\n        especiales positivo positiva negativo negativa activo activa local\n        locales normal normales básico básica avanzado avanzada increíble\n        increíbles perfecto perfecta gracias disculpa disculpe hola vale bien\n        claro adelante además incluso tampoco tampoco finalmente guion guión guiones\n        llamar llamo llama llamamos llaman llamé llamó llamando llamado llamada\n    """),\n}\nPALAVRAS_COMUNS = COMUNS["pt"] | COMUNS["es"]\n\n\n# Homônimos deliberadamente conservadores: "Luz" pode ser pessoa ou substantivo.\n# Preservar a grafia do usuário é preferível a destruir um nome desconhecido.\nNOMES = _palavras("""\n    João Joao Maria Bruno Ana José Jose Pedro Paulo Paula Carlos Carla Marcos\n    Marco Lucas Luiza Luísa Luis Luís Luiz Laura Leonardo Gabriel Gabriela Miguel\n    Rafael Rafaela Daniel Daniela David Davi Fernando Fernanda Felipe Mariana\n    Marina Beatriz Camila Juliana Julia Júlia André Andre Andressa Eduardo Eduarda\n    Antônio Antonio Antônia Antonia Francisco Francisca Guilherme Gustavo\n    Henrique Helena Isabel Isabela Isabella Sofia Sophia Alice Arthur Artur\n    Bernardo Enzo Lorenzo Valentina Vicente Victor Vitor Vitória Vitoria Vanessa\n    Renata Renato Ricardo Roberto Roberta Rodrigo Sérgio Sergio Silvia Sílvia\n    Thiago Tiago Vera Rosa Clara Luz Mar Sol Flor Graça Graca Glória Gloria\n    Esperança Esperanza Paz Cielo Alma Aurora Amparo Dolores Mercedes Pilar\n    Carmen Consuelo Concepción Encarnación Milagros Soledad Trinidad Salvador\n    Santos Santiago Juan Juana Jorge Javier Xavi Ximena Jimena Diego Alejandro\n    Alejandra Andrés Andres Ángel Angel Ángela Angela Jesús Jesus Cristina Lucía\n    Lucia Manuel Manuela Pablo Rosario Rocío Rocio Teresa Tomás Tomas Ramón\n    Ramon Raúl Raul Enrique Esteban Ignacio Nicolás Nicolas Valeria Iker Aitor Tomé\n    Brasil Portugal Espanha España México Mexico Argentina Chile Colombia\n    Colômbia Venezuela Uruguay Uruguai Paraguay Paraguai Peru Bolívia Bolivia\n    Ecuador Equador Cuba Panamá Panama Honduras Guatemala Nicaragua Canadá\n    Canada França Francia Alemania Alemanha Itália Italia Japão Japón China\n    Índia India África Africa Europa Lisboa Madrid Barcelona Londres London\n    Paris Roma Brasília Brasilia Curitiba Recife Fortaleza Manaus Belém Belem\n    Natal Florianópolis Florianopolis Vitória Vitoria Porto Rio Bahia Paraná\n    Parana Ceará Ceara Pernambuco Alagoas Sergipe Goiás Goias Tocantins Amazonas\n    CapCut Windows Premiere DaVinci Resolve Adobe Microsoft Apple macOS Linux\n    Android iOS Python YouTube Instagram Facebook WhatsApp TikTok Hotmart Google\n    OpenAI ChatGPT Canva Figma Photoshop Illustrator Spotify Netflix Amazon\n    Samsung Sony Canon Nikon Intel AMD Nvidia Inter Poppins Garamond Arial\n""")\n\nSIGLAS = frozenset("TV PC IA AI API URL HTTP HTTPS USB PDF CPU GPU RAM CRM CEO "\n                   "CPF CNPJ RG MEI PJ CLT UX UI HTML CSS DNA ONU OMS UE EUA "\n                   "BR PT ES RJ SP TI".split())\nPARTICULAS = _palavras("de da do das dos e del la las los y van von di du")\nNOMES_COMPOSTOS = tuple(tuple(_chave(p) for p in frase.split()) for frase in (\n    "São Paulo", "São José", "São Luís", "São Luiz", "São João", "São Pedro",\n    "Santo André", "Santo Antônio", "Santa Catarina", "Santa Maria", "Santa Rita",\n    "Rio de Janeiro", "Rio Grande do Sul", "Rio Grande do Norte", "Belo Horizonte",\n    "Porto Alegre", "Minas Gerais", "Espírito Santo", "Mato Grosso", "Mato Grosso do Sul",\n    "Distrito Federal", "Estados Unidos", "Reino Unido", "Banco do Brasil",\n    "San José", "San Juan", "San Pedro", "San Francisco", "San Sebastián",\n    "Santa Fe", "Santa Cruz", "Buenos Aires", "Ciudad de México", "Nueva York",\n    "Los Ángeles", "Las Vegas", "Costa Rica", "República Dominicana", "País Vasco",\n))\n\nCONTEXTO_NOME = tuple(tuple(_chave(p) for p in frase.split()) for frase in (\n    "me chamo", "se chama", "meu nome é", "nome", "me llamo", "se llama",\n    "mi nombre es", "nombre", "doutor", "doutora", "senhor", "senhora",\n    "doctor", "doctora", "señor", "señora", "dr", "dra", "sr", "sra",\n    "professor", "professora", "profesor", "profesora", "prof", "profa",\n    "empresa", "marca", "canal", "cidade", "ciudad", "bairro", "barrio",\n    "rua", "calle", "avenida", "universidade", "universidad", "escola",\n    "escuela", "instituto", "hospital", "restaurante", "hotel",\n))\nPREFIXOS_LOCAL = _palavras("são santo santa san")\nABREVIACOES_NOME = _palavras("dr dra sr sra prof profa")\nFREIOS_NOME = _palavras("""\n    eu você vocês ele ela eles elas nós tu quando onde como hoje ontem amanhã\n    agora então depois antes porque porém mas fui foi sou é são está estão era\n    eram tenho tem têm teve tinha vai vão vou disse fala falou escreve escreveu\n    yo tú él ella ellos ellas usted ustedes nosotros cuando donde cómo hoy ayer\n    mañana ahora entonces después antes porque pero fui fue soy es son está\n    están era eran tengo tiene tienen tuvo tenía voy va van dijo habla habló\n    escribe escribió\n""")\n\n\ndef _separar_token(token):\n    """Recorta somente pontuação externa; mantém hífens, URLs e handles intactos."""\n    if not isinstance(token, str):\n        raise TypeError("Os tokens de legenda precisam ser strings")\n    letras = [i for i, c in enumerate(token) if c.isalpha()]\n    if not letras:\n        return None\n    a, b = letras[0], letras[-1] + 1\n    while b < len(token) and unicodedata.category(token[b]).startswith("M"):\n        b += 1\n    miolo = token[a:b]\n    if any(not (c.isalpha() or unicodedata.category(c).startswith("M")) for c in miolo):\n        return None\n    if any(c.isalnum() or c in "@#_" for c in token[:a] + token[b:]):\n        return None\n    return a, b, miolo, _chave(miolo)\n\n\ndef _capitalizado(info):\n    return info is not None and info[2][0].isupper()\n\n\ndef _fim(token):\n    return token.rstrip().rstrip(\'"\\\'”’»)]}\').endswith(tuple(".,;:!?…"))\n\n\ndef _protegidos(tokens, infos, primeiros):\n    protegidos = {i for i, info in enumerate(infos) if info and (\n        info[3] in NOMES or info[2] in SIGLAS\n        or (any(c.isupper() for c in info[2][1:])\n            and any(c.islower() for c in info[2])))}\n\n    def trecho_nome(inicio, apenas_nomes=False):\n        """Conserva um nome capitalizado e suas partículas, com tamanho limitado."""\n        j, ultimo_nome = inicio, None\n        while j < len(tokens) and j < inicio + 8:\n            info = infos[j]\n            if info is None or (j > inicio and (\n                    j in primeiros or _fim(tokens[j - 1]))):\n                break\n            if _capitalizado(info) and info[3] not in FREIOS_NOME:\n                # "Bruno Gravou" não torna "Gravou" parte do nome. Uma\n                # apresentação explícita ("me chamo Seguro") é evidência maior.\n                if (apenas_nomes and info[3] in PALAVRAS_COMUNS\n                        and info[3] not in NOMES):\n                    break\n                ultimo_nome = j\n                j += 1\n            elif ultimo_nome is not None and info[3] in PARTICULAS:\n                j += 1\n            else:\n                break\n        if ultimo_nome is not None:\n            protegidos.update(range(inicio, ultimo_nome + 1))\n\n    chaves = [info[3] if info else None for info in infos]\n    for i, info in enumerate(infos):\n        if info is None:\n            continue\n        for frase in NOMES_COMPOSTOS:\n            if tuple(chaves[i:i + len(frase)]) == frase and not any(\n                    _fim(t) for t in tokens[i:i + len(frase) - 1]):\n                protegidos.update(range(i, i + len(frase)))\n        if i in protegidos and _capitalizado(info):\n            trecho_nome(i, apenas_nomes=True)\n        for pista in CONTEXTO_NOME:\n            if tuple(chaves[i:i + len(pista)]) != pista:\n                continue\n            if any(_fim(t) for t in tokens[i:i + len(pista) - 1]):\n                continue\n            ultimo = tokens[i + len(pista) - 1].rstrip()\n            if (_fim(ultimo) and not ultimo.endswith(":")\n                    and not (pista[-1] in ABREVIACOES_NOME and ultimo.endswith("."))):\n                continue\n            j = i + len(pista)\n            while j < len(infos) and infos[j] and infos[j][3] in PARTICULAS:\n                j += 1\n            if j < len(infos) and _capitalizado(infos[j]):\n                trecho_nome(j)\n        if info[3] in PREFIXOS_LOCAL and i + 1 < len(infos) and not _fim(tokens[i]):\n            proximo = infos[i + 1]\n            if _capitalizado(proximo) and (proximo[3] in NOMES\n                                          or proximo[3] not in PALAVRAS_COMUNS):\n                protegidos.add(i)\n                trecho_nome(i + 1, apenas_nomes=True)\n    return protegidos\n\n\ndef normalizar_palavras(palavras, idioma="pt"):\n    """Normaliza a transcrição antes dos layouts, conservando tempos/metadados."""\n    palavras = list(palavras)\n    tokens = normalizar_blocos([([w["t"] for w in palavras], 0, 0)], idioma)[0][0]\n    return [dict(w, t=t) for w, t in zip(palavras, tokens)]\n\n\ndef normalizar_blocos(blocos, idioma="pt"):\n    """Nova lista de blocos; muda apenas a caixa dos tokens comuns PT/ES.\n\n    Aceita o contrato do transcritor: [(palavras, início_us, duração_us), ...].\n    Conserva blocos/tokens como lista ou tupla, campos extras e valores de tempo.\n    Não altera a entrada. Idiomas não suportados passam intactos em novas listas.\n    A opção de CAIXA ALTA do app deve ser aplicada DEPOIS desta função.\n    """\n    blocos = list(blocos)\n    tokens, primeiros, mapa = [], set(), []\n    for bloco in blocos:\n        if not isinstance(bloco, (list, tuple)) or not bloco or not isinstance(bloco[0], (list, tuple)):\n            raise TypeError("Bloco precisa conter uma lista/tupla de tokens no primeiro campo")\n        primeiros.add(len(tokens))\n        mapa.append((len(tokens), len(bloco[0])))\n        tokens.extend(bloco[0])\n    infos = [_separar_token(t) for t in tokens]\n    codigo = str(idioma or "").lower().replace("_", "-").split("-", 1)[0]\n    comuns = COMUNS.get(codigo, frozenset())\n    protegidos = _protegidos(tokens, infos, primeiros) if comuns else set(range(len(tokens)))\n    minusculas = Counter(info[3] for i, info in enumerate(infos)\n                         if info and i not in protegidos and info[2].islower())\n    novos = []\n    for i, (token, info) in enumerate(zip(tokens, infos)):\n        if info is None or i in protegidos:\n            novos.append(token)\n            continue\n        a, b, miolo, chave = info\n        inicio = i in primeiros or i == 0 or _fim(tokens[i - 1]) or any(c in token[:a] for c in "¿¡")\n        evidencia_local = (not inicio and miolo.istitle() and len(chave) >= 4\n                           and minusculas[chave] >= 2)\n        if chave in comuns or evidencia_local:\n            token = token[:a] + miolo.lower() + token[b:]\n        novos.append(token)\n    saida = []\n    for bloco, (inicio, tamanho) in zip(blocos, mapa):\n        palavras = novos[inicio:inicio + tamanho]\n        if isinstance(bloco[0], tuple):\n            palavras = tuple(palavras)\n        copia = [palavras] + list(bloco[1:])\n        saida.append(tuple(copia) if isinstance(bloco, tuple) else copia)\n    return saida\n', _tv_texto.__dict__)
 normalizar_palavras = _tv_texto.normalizar_palavras
 
-APP_VERSION = "v3.1.6"
+APP_VERSION = "v3.2.0"
 WIN_ID = "TitanTitles_Win_v1"
 OLD_WIN_IDS = ("LD_Win", "TV_Win_v2", "TV_Win_v3",
                "TV_Win_1", "TV_Win_2", "TV_Win_3", "TV_Win_4",
@@ -344,7 +214,16 @@ def _script_dir():
     return os.getcwd()
 
 SCRIPT_DIR = _script_dir()
-ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
+INSTALL_ROOT = SCRIPT_DIR
+RESOURCE_DIR = os.path.join(INSTALL_ROOT, "TitanTitlesStudio")
+if not os.path.isfile(os.path.join(RESOURCE_DIR, "titan_update.py")):
+    RESOURCE_DIR = INSTALL_ROOT  # Development/source packages.
+ICON_DIR = os.path.join(RESOURCE_DIR, "icons")
+import importlib.util as _import_util
+_update_spec = _import_util.spec_from_file_location("titan_update", os.path.join(RESOURCE_DIR, "titan_update.py"))
+_update_module = _import_util.module_from_spec(_update_spec)
+_update_spec.loader.exec_module(_update_module)
+Atualizador = _update_module.Atualizador
 
 
 
@@ -379,7 +258,11 @@ def tc_to_frame(tc, fps):
         return 0
     h, m, s, f = [int(x) for x in parts]
     nominal = int(round(fps))
-    return (h * 3600 + m * 60 + s) * nominal + f
+    frame = (h * 3600 + m * 60 + s) * nominal + f
+    if ";" in tc and nominal in (30, 60) and abs(fps - nominal * 1000 / 1001) < 0.01:
+        minutes = h * 60 + m
+        frame -= (2 if nominal == 30 else 4) * (minutes - minutes // 10)
+    return frame
 
 
 def playhead_frame(tl):
@@ -411,6 +294,8 @@ def find_textplus_under_playhead(tl):
         ntracks = 0
     for t in range(1, ntracks + 1):
         items = tl.GetItemListInTrack("video", t) or []
+        if hasattr(items, "values"):
+            items = items.values()
         for it in items:
             try:
                 st, en = int(it.GetStart()), int(it.GetEnd())
@@ -428,15 +313,23 @@ def find_textplus_under_playhead(tl):
                 continue
             if not comp:
                 continue
-            tool = comp.FindToolByID("TextPlus")
-            if not tool:
+            try:
+                tool = comp.FindToolByID("TextPlus")
+                if not tool:
+                    tools = comp.GetToolList(False, "TextPlus") or {}
+                    tools = list(tools.values()) if hasattr(tools, "values") else list(tools)
+                    tool = tools[0] if tools else None
+                if not tool:
+                    continue
+                txt = tool.GetInput("StyledText") or ""
+                out.append({
+                    "item": it, "track": t, "comp": comp, "tool": tool,
+                    "text": str(txt).strip(), "start": st, "end": en,
+                    "uid": _uid(it, t, st),
+                })
+            except Exception:
+                _tv_diag.falha("Titan.detectar_textplus")
                 continue
-            txt = tool.GetInput("StyledText") or ""
-            out.append({
-                "item": it, "track": t, "comp": comp, "tool": tool,
-                "text": str(txt).strip(), "start": st, "end": en,
-                "uid": _uid(it, t, st),
-            })
     out.sort(key=lambda e: (e["start"], e["track"]))
     return out
 
@@ -2627,7 +2520,7 @@ def _num_versao(v):
 
 
 def checar_atualizacao():
-    return None
+    return _update_module.check(APP_VERSION)
 def _old_update():
     """Pergunta ao servidor se saiu versão nova. Devolve (versao, link, notas)
     ou None. Falha em silêncio: sem internet o plugin abre normal."""
@@ -3137,6 +3030,7 @@ class App(object):
         self.gen_layouts = list(GEN_LAY_DEF)
         self.gen_auto = True        
         self.build()
+        self.mostrar_update()
         self._preview_ready = True
         self._try(self._gpreview)
         self._try(self.update_preview)
@@ -3752,7 +3646,7 @@ class App(object):
         geo[3] = max(700, min(geo[3], 940))
         _tv_diag.evento("janela.geometria", solicitada=geo, plataforma=sys.platform)
         self.win = disp.AddWindow({
-            "ID": WIN_ID, "WindowTitle": "Titan Titles Studio v1.0 · @rangelmaker_",
+            "ID": WIN_ID, "WindowTitle": "%s %s · @rangelmaker_" % (APP_NAME, APP_VERSION),
             "Geometry": geo,
             "WindowFlags": {"Window": True, "WindowStaysOnTopHint": True},
             "StyleSheet": STYLE,
@@ -3794,7 +3688,7 @@ class App(object):
                     ui.Label({"ID": "up_txt", "Text": "", "WordWrap": False,
                               "StyleSheet": "color:#38bdf8;background:transparent;",
                               "MinimumSize": [200, 24], "MaximumSize": [330, 26]}),
-                    ui.Button({"ID": "up_btn", "Text": "baixar",
+                    ui.Button({"ID": "up_btn", "Text": "Baixar",
                                "MinimumSize": [72, 24], "MaximumSize": [76, 26],
                                "StyleSheet":
                                    "QPushButton{background-color:%s;color: #ffffff;"
@@ -4511,6 +4405,7 @@ class App(object):
             self._refreshing = False
 
     def _refresh_current(self, force=False):
+        self._poll_update()
         proj, tl = get_timeline()
         if not tl:
             self.entries = []
@@ -4732,11 +4627,15 @@ class App(object):
             return
         updater = getattr(self, "_updater", None)
         if updater is None:
-            updater = self._updater = Atualizador(APP_ALVO, IDIOMA, LICENCA_API)
+            updater = self._updater = Atualizador(INSTALL_ROOT)
         if updater.arquivo:
             try:
                 updater.instalar()
+                self.items["up_txt"].Text = "Atualizado! Reabra o Titan Titles Studio."
+                self.items["up_btn"].Text = "Concluído"
+                self.items["up_btn"].Enabled = False
                 self._exit = True
+                disp.ExitLoop()
             except Exception as erro:
                 _tv_diag.falha('Titulos Virais.on_baixar_update')
                 self.items["up_txt"].Text = str(erro)
@@ -4745,6 +4644,7 @@ class App(object):
             self.items["up_txt"].Text = "Baixando atualização…"
 
     def _poll_update(self):
+        self._mostrar_update_resultado()
         import queue
         updater = getattr(self, "_updater", None)
         if updater is None:
@@ -4757,7 +4657,7 @@ class App(object):
                     self.items["up_txt"].Text = ("Baixando atualização… %d%%" % (n * 100 / total)
                                                 if total else "Baixando atualização… %.1f MB" % (n / 1048576.0))
                 elif evento[0] == "pronto":
-                    self.items["up_txt"].Text = "Download concluído. Instale e reabra o plugin."
+                    self.items["up_txt"].Text = "Pronto para instalar. Backup automático."
                     self.items["up_btn"].Text = "Instalar"
                     self.items["up_btn"].Enabled = True
                 elif evento[0] == "erro":
@@ -4768,24 +4668,33 @@ class App(object):
             pass
 
     def mostrar_update(self):
-        """Pergunta ao servidor por versão nova e acende a faixa do cabeçalho."""
-        info = None
+        """Consulta fora da thread da interface; falhas de rede não bloqueiam edição."""
+        import queue
+        import threading
+        if getattr(self, "_update_check_started", False):
+            return
+        self._update_check_started = True
+        self._update_results = queue.Queue()
+        def worker():
+            self._update_results.put(checar_atualizacao())
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _mostrar_update_resultado(self):
+        import queue
+        results = getattr(self, "_update_results", None)
+        if results is None:
+            return
         try:
-            info = checar_atualizacao()
-        except Exception as ex:
-            _tv_diag.falha('Titulos Virais.mostrar_update')
-            log("checagem de versão:", ex)
+            info = results.get_nowait()
+        except queue.Empty:
+            return
         if not info:
             return
         versao, link, notas = info
         self._update_link = link
-        txt = "Versão %s disponível" % versao
-        if notas:
-            txt += " — " + notas
-        self._try(lambda: setattr(self.items["up_txt"], "Text", txt))
-        self._try(lambda: setattr(self.items["cx_update"], "Hidden", False))
-        self._relayout()      
-        log("atualização disponível: %s (%s)" % (versao, link))
+        self.items["up_txt"].Text = "%s disponível · GitHub" % versao
+        self.items["cx_update"].Hidden = False
+        self._relayout()
 
     def _relayout(self):
         """O UIManager só refaz as contas quando a janela muda de tamanho —
@@ -5106,6 +5015,11 @@ class App(object):
         (cada key leva ~8ms) — era isso que impedia o arrasto fluido."""
         if getattr(self, "_syncing", False):
             return
+        # Atualiza o alvo sem sobrescrever a posição que o usuário acaba de escolher.
+        _, timeline = get_timeline()
+        if timeline and timeline.GetCurrentTimecode() != self.last_tc:
+            self.entries = find_textplus_under_playhead(timeline)
+            self.last_tc = timeline.GetCurrentTimecode()
         self._ima_posicao("posx")
         self._ima_posicao("posy")
         try:

@@ -1,19 +1,26 @@
-﻿# ⚡ TITAN TITLES STUDIO v1.0
-> Plugin de Animacoes, Layouts e Tipografia para DaVinci Resolve (Windows e macOS)
-> Criado por **@rangelmaker_**
+# Titan Titles Studio
 
-## 🚀 Recursos
-- 100% Offline e Standalone (sem login ou ativacoes)
-- Identidade visual moderna em Titânio & Azul Elétrico Metalico
-- Animacoes fluidas e layouts inteligentes de títulos/legendas em Text+
+Layouts, tipografia e movimento para DaVinci Resolve. Titânio & Azul Elétrico • @rangelmaker_
 
-## 📥 Como Instalar
-### No Windows:
-1. Abra a pasta 1 - Windows`r
-2. De 2 cliques em Instalar_Windows.bat`r
+## Instalar
 
-### No Mac:
-1. Abra a pasta 2 - Mac`r
-2. De 2 cliques em Instalar_no_Mac.command (ou copie Titan Titles Studio.py e icons para ~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit)
+Baixe o ZIP do seu sistema na [última versão](https://github.com/rangelmaker-ux/titan-titulos/releases/latest), extraia tudo e abra:
 
-No DaVinci Resolve, acesse em: **Workspace > Scripts > Edit > Titan Titles Studio**
+- Windows: Instalar_Windows.bat.
+- Mac: Instalar_no_Mac.command.
+
+Os instaladores permitem instalar, reinstalar removendo a versão anterior ou desinstalar. Um backup é preservado; outros plugins e títulos nos projetos permanecem intactos.
+
+No Resolve: Workspace > Scripts > Edit > Titan Titles Studio.
+
+Veja [INSTALL.md](INSTALL.md) para instalação, permissões e recuperação.
+
+## Atualizações
+
+Desde v3.2.0, o Titan consulta Releases estáveis no GitHub. O cliente pode baixar e instalar dentro do plugin, com verificação SHA-256 e backup. Reabra o Titan após atualizar. Sem internet, a edição continua funcionando.
+
+Quem usa uma versão anterior precisa instalar v3.2.0 uma vez. Veja [PUBLISH.md](PUBLISH.md) para publicar as próximas versões.
+
+## Validação
+
+Testes automatizados cobrem integridade, rollback, versão, rede, URL, pacote e permissões executáveis do ZIP Mac. Instalação/reinstalação/remoção Windows testadas em pasta isolada. Teste interativo no Resolve/macOS ainda necessário antes de anunciar compatibilidade comercial completa.

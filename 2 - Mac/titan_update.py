@@ -1,0 +1,198 @@
+"""Titan Titles Studio: public GitHub Releases, verified packages and rollback."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import queue
+import re
+import shutil
+import ssl
+import sys
+import tempfile
+import threading
+import time
+import urllib.request
+from urllib.parse import urlsplit
+import zipfile
+
+REPO = 'rangelmaker-ux/titan-titulos'
+API = 'https://api.github.com/repos/' + REPO + '/releases/latest'
+ASSET = 'Titan-Titles-Studio-Update.zip'
+MAX_BYTES = 32 * 1024 * 1024
+
+def version(value):
+    match = re.fullmatch(r'v?(\d+)\.(\d+)\.(\d+)', str(value))
+    if not match:
+        raise ValueError('Versão de atualização inválida.')
+    return tuple(map(int, match.groups()))
+
+def allowed_url(url):
+    p = urlsplit(url)
+    hosts = {'api.github.com', 'github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'}
+    if p.scheme != 'https' or p.hostname not in hosts or p.username or p.password or p.port not in (None, 443):
+        raise ValueError('Endereço de atualização inválido.')
+    if p.hostname == 'api.github.com' and not p.path.startswith('/repos/' + REPO + '/'):
+        raise ValueError('Repositório de atualização inválido.')
+    if p.hostname == 'github.com' and not p.path.startswith('/' + REPO + '/releases/'):
+        raise ValueError('Repositório de atualização inválido.')
+    return url
+
+def open_url(url):
+    class Redirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            allowed_url(newurl)
+            return super().redirect_request(req, fp, code, msg, headers, newurl)
+    context = ssl.create_default_context()
+    try:
+        import certifi
+        context.load_verify_locations(certifi.where())
+    except ImportError:
+        pass
+    opener = urllib.request.build_opener(Redirect(), urllib.request.HTTPSHandler(context=context))
+    return opener.open(urllib.request.Request(allowed_url(url), headers={
+        'User-Agent': 'Titan-Titles-Studio-Updater', 'Accept': 'application/vnd.github+json'}), timeout=10)
+
+def check(current):
+    """Offline and rate limits must never prevent the plugin from opening."""
+    try:
+        with open_url(API) as response:
+            raw = response.read(1024 * 1024 + 1)
+        if len(raw) > 1024 * 1024:
+            return None
+        release = json.loads(raw)
+        tag = release.get('tag_name', '')
+        if release.get('draft') or release.get('prerelease') or version(tag) <= version(current):
+            return None
+        assets = {a['name']: a for a in release.get('assets', [])}
+        asset = assets.get(ASSET)
+        if not asset or not re.fullmatch(r'sha256:[0-9a-f]{64}', asset.get('digest') or ''):
+            return None
+        return (tag, {'url': allowed_url(asset['browser_download_url']),
+                      'sha256': asset['digest'][7:], 'version': tag}, 'Atualização pelo GitHub')
+    except Exception:
+        return None
+
+def validate_package(path, expected_version):
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+        if len(names) != len(set(names)) or sum(i.file_size for i in archive.infolist()) > MAX_BYTES:
+            raise ValueError('Pacote inválido ou muito grande.')
+        manifest = json.loads(archive.read('manifest.json'))
+        if manifest.get('product') != 'Titan Titles Studio' or manifest.get('version') != expected_version:
+            raise ValueError('Este pacote não corresponde à atualização.')
+        files = manifest.get('files', {})
+        if not isinstance(files, dict) or not files or set(names) != set(files) | {'manifest.json'}:
+            raise ValueError('Conteúdo do pacote inválido.')
+        if not {'Titan Titles Studio.py', 'titan_update.py'} <= set(files):
+            raise ValueError('Pacote incompleto.')
+        data = {}
+        for name, digest in files.items():
+            if name not in ('Titan Titles Studio.py', 'titan_update.py') and not re.fullmatch(r'icons/[A-Za-z0-9_-]+\.(png|jpg)', name):
+                raise ValueError('Arquivo não permitido na atualização.')
+            content = archive.read(name)
+            if hashlib.sha256(content).hexdigest() != digest:
+                raise ValueError('Falha de integridade no pacote.')
+            if name.endswith('.py'):
+                ast.parse(content.decode('utf-8'))
+            data[name] = content
+        return data
+
+def install_package(path, expected_version, install_root):
+    data = validate_package(path, expected_version)
+    root = Path(install_root).absolute()
+    if not root.is_dir() or any(p.is_symlink() or (hasattr(p, 'is_junction') and p.is_junction()) for p in (root, *root.parents)):
+        raise ValueError('Pasta de instalação inválida.')
+    # Canonicalize Windows 8.3 names without confusing them with redirects.
+    root = root.resolve()
+    resources = root / 'TitanTitlesStudio'
+    targets = {name: root / name if name == 'Titan Titles Studio.py' else resources / name for name in data}
+    for target in targets.values():
+        if target.resolve() != target.absolute():
+            raise ValueError('Arquivo redirecionado; reinstale o plugin.')
+    backup_parent = root / 'TitanTitlesStudio-backups'
+    if backup_parent.is_symlink():
+        raise ValueError('Pasta de backup inválida.')
+    backup = backup_parent / (time.strftime('%Y%m%d-%H%M%S') + '-' + str(time.time_ns()))
+    backup.mkdir(parents=True)
+    old, written = {}, []
+    try:
+        for name, target in targets.items():
+            old[name] = target.read_bytes() if target.exists() else None
+            if old[name] is not None:
+                saved = backup / name
+                saved.parent.mkdir(parents=True, exist_ok=True)
+                saved.write_bytes(old[name])
+        # Replace the entry script last; downloaded bytes are fully verified first.
+        for name in sorted(data, key=lambda n: n == 'Titan Titles Studio.py'):
+            target = targets[name]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            fd, temporary = tempfile.mkstemp(prefix='.titan-', dir=str(target.parent))
+            try:
+                with os.fdopen(fd, 'wb') as output:
+                    output.write(data[name]); output.flush(); os.fsync(output.fileno())
+                os.replace(temporary, target)
+                written.append(name)
+            finally:
+                if os.path.exists(temporary):
+                    os.unlink(temporary)
+    except Exception:
+        for name in reversed(written):
+            if old[name] is None:
+                targets[name].unlink()
+            else:
+                targets[name].write_bytes(old[name])
+        raise
+    return str(backup)
+
+class Atualizador:
+    def __init__(self, install_root):
+        self.install_root = install_root
+        self.eventos = queue.Queue()
+        self.ocupado = False
+        self.arquivo = None
+        self.release = None
+    def iniciar(self, release):
+        if self.ocupado or self.arquivo:
+            return False
+        self.ocupado = True
+        self.release = release
+        def worker():
+            folder = tempfile.mkdtemp(prefix='titan-update-')
+            path = os.path.join(folder, ASSET)
+            try:
+                with open_url(release['url']) as response, open(path, 'wb') as output:
+                    total = int(response.headers.get('Content-Length') or 0)
+                    count = 0
+                    digest = hashlib.sha256()
+                    while True:
+                        chunk = response.read(256 * 1024)
+                        if not chunk:
+                            break
+                        count += len(chunk)
+                        if count > MAX_BYTES:
+                            raise ValueError('Pacote excede o limite de tamanho.')
+                        digest.update(chunk); output.write(chunk)
+                        self.eventos.put(('progresso', count, total))
+                if (total and count != total) or digest.hexdigest() != release['sha256']:
+                    raise ValueError('Download incompleto ou inválido.')
+                validate_package(path, release['version'])
+                self.arquivo = path
+                self.eventos.put(('pronto', path))
+            except Exception:
+                shutil.rmtree(folder, ignore_errors=True)
+                self.eventos.put(('erro', 'Não foi possível baixar. Confira a conexão e tente novamente.'))
+            finally:
+                self.ocupado = False
+        threading.Thread(target=worker, daemon=True).start()
+        return True
+    def instalar(self):
+        if not self.arquivo or not self.release:
+            raise ValueError('Baixe a atualização primeiro.')
+        # Recheck the complete downloaded ZIP before writing files.
+        if hashlib.sha256(Path(self.arquivo).read_bytes()).hexdigest() != self.release['sha256']:
+            raise ValueError('Pacote de atualização alterado.')
+        backup = install_package(self.arquivo, self.release['version'], self.install_root)
+        shutil.rmtree(os.path.dirname(self.arquivo), ignore_errors=True)
+        self.arquivo = None
+        return backup

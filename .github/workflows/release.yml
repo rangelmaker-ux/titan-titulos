@@ -1,0 +1,36 @@
+name: Publish Titan Titles Studio
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test updater and packages
+        run: python -m unittest discover -s tests -v
+      - name: Check macOS shell syntax
+        run: bash -n '2 - Mac/Instalar_no_Mac.command'
+      - name: Build
+        run: python tools/build_release.py
+      - name: Publish complete release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="v$(cat VERSION | tr -d '\r\n')"
+          if [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" != "$VERSION" ]]; then
+            echo "Tag and VERSION do not match"; exit 1
+          fi
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "This release exists; it will not be replaced. Increment VERSION for the next release."; exit 0
+          fi
+          gh release create "$VERSION" dist/* --draft --target "$GITHUB_SHA" --title "Titan Titles Studio $VERSION" --notes-file RELEASE_NOTES.md
+          gh release edit "$VERSION" --draft=false --latest
