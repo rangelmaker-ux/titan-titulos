@@ -16,7 +16,9 @@ jobs:
       - name: Test updater and packages
         run: python -m unittest discover -s tests -v
       - name: Verify updater HTTPS on macOS
-        run: PYTHONPATH=src python -c "import titan_update as u; r=u.open_url(u.API); assert r.status == 200; r.close(); print('macOS updater HTTPS verified')"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: PYTHONPATH=src python -c "import os, urllib.request, titan_update as u; request=urllib.request.Request(u.allowed_url(u.API), headers={'User-Agent':'Titan-CI','Authorization':'Bearer '+os.environ['GH_TOKEN']}); r=urllib.request.urlopen(request, context=u.ssl_context()); assert r.status == 200; r.close(); print('macOS updater HTTPS verified')"
       - name: Check macOS shell syntax
         run: bash -n '2 - Mac/Instalar_no_Mac.command'
       - name: Build
