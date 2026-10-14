@@ -5,12 +5,13 @@ VERSION="$(tr -d '\r\n' < "$ROOT/VERSION")"
 [ "$(uname -s)" = Darwin ] || { echo 'Este build requer macOS.' >&2; exit 1; }
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
-mkdir -p "$STAGE/scripts/payload/icons" "$STAGE/ui" "$ROOT/dist"
+mkdir -p "$STAGE/scripts/payload/icons" "$STAGE/scripts/payload/sfx" "$STAGE/ui" "$ROOT/dist"
 cp "$ROOT/tools/macos/postinstall" "$STAGE/scripts/postinstall"
 cp "$ROOT/tools/macos/install_engine.sh" "$STAGE/scripts/install_engine.sh"
 cp "$ROOT/VERSION" "$STAGE/scripts/VERSION"
-cp "$ROOT/src/Titan Titles Studio.py" "$ROOT/src/titan_update.py" "$STAGE/scripts/payload/"
+cp "$ROOT/src/Titan Titles Studio.py" "$ROOT/src/titan_update.py" "$ROOT/src/titan_locale.py" "$ROOT/src/titan_sfx.py" "$STAGE/scripts/payload/"
 cp "$ROOT/src/icons/"* "$STAGE/scripts/payload/icons/"
+cp "$ROOT/src/sfx/"* "$STAGE/scripts/payload/sfx/"
 chmod 755 "$STAGE/scripts/postinstall" "$STAGE/scripts/install_engine.sh"
 cp "$ROOT/src/icons/titan_word.png" "$STAGE/ui/titan_word.png"
 cat > "$STAGE/ui/Welcome.html" <<'HTML'

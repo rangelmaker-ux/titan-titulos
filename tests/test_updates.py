@@ -43,7 +43,8 @@ class Updates(unittest.TestCase):
         self.assertEqual((Path(backup)/'Titan Titles Studio.py').read_bytes(), b'old script')
         self.assertEqual((root/'other-plugin.py').read_bytes(),b'keep')
         self.assertEqual((root/'icons/other.png').read_bytes(),b'keep icon')
-        self.assertEqual((root.parent.parent/'TitanTitlesStudio/titan_update.py').read_bytes(),(ROOT/'src/titan_update.py').read_bytes())
+        with zipfile.ZipFile(self.archive) as z:
+            self.assertEqual((root.parent.parent/'TitanTitlesStudio/titan_update.py').read_bytes(),z.read('titan_update.py'))
     def test_failed_install_rolls_back(self):
         root=self.base/'Fusion/Scripts/Edit'; root.mkdir(parents=True)
         (root/'Titan Studio.py').write_bytes(b'old script')
@@ -101,5 +102,23 @@ class Updates(unittest.TestCase):
         with patch.object(u,'open_url',side_effect=lambda url:contextlib.closing(io.BytesIO(json.dumps(release).encode()))):
             self.assertEqual(u.check('v1.0.0')[0],self.current)
             self.assertIsNone(u.check(self.current))
+    def test_legacy_updater_can_receive_bundle_and_migrate_menu(self):
+        import re
+        # Reproduce the original v3.2.0 file whitelist and destination layout.
+        root=self.base/'Fusion/Scripts/Edit';root.mkdir(parents=True)
+        legacy=root/'TitanTitlesStudio';legacy.mkdir()
+        with zipfile.ZipFile(self.archive) as z:
+            names=set(z.namelist())-{'manifest.json'}
+            self.assertTrue(all(n in ('Titan Titles Studio.py','titan_update.py') or re.fullmatch(r'icons/[A-Za-z0-9_-]+\.(png|jpg)',n) for n in names))
+            for name in names:
+                path=root/name if name=='Titan Titles Studio.py' else legacy/name
+                path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(z.read(name))
+        spec=importlib.util.spec_from_file_location('old_migrated_update',legacy/'titan_update.py')
+        migrated=importlib.util.module_from_spec(spec);spec.loader.exec_module(migrated)
+        resources=Path(migrated.prepare_resources(legacy,root/'Titan Titles Studio.py'))
+        self.assertEqual(resources,root.parent.parent/'TitanTitlesStudio')
+        self.assertEqual([p.name for p in root.parent.rglob('*.py')],['Titan Studio.py'])
+        self.assertEqual((resources/'titan_locale.py').read_bytes(),(ROOT/'src/titan_locale.py').read_bytes())
+        self.assertEqual((resources/'sfx/glitch.wav').read_bytes(),(ROOT/'src/sfx/glitch.wav').read_bytes())
 
 if __name__=='__main__': unittest.main()

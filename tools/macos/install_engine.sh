@@ -9,7 +9,7 @@ VERSION="$5"
 case "$USER_HOME" in /Users/*) ;; *) echo 'Conta de usuário inválida.' >&2; exit 1;; esac
 case "$USER_UID" in ''|*[!0-9]*) exit 1;; esac
 [ "$USER_UID" -ge 501 ] || { echo 'Não instale na conta root ou em uma conta de sistema.' >&2; exit 1; }
-for part in 'Titan Titles Studio.py' titan_update.py icons; do
+for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py icons sfx; do
     [ -e "$PAYLOAD/$part" ] || { echo "Pacote incompleto: $part" >&2; exit 1; }
 done
 assert_path() {
@@ -69,7 +69,7 @@ clean_menu() {
         name="$(/usr/bin/basename "$file")"
         RETIRED_COUNT=$((RETIRED_COUNT+1))
         retire "$file" "$backup/menu-$RETIRED_COUNT-$name"
-    done < <(/usr/bin/find "$scripts" -type f \( -iname 'Titan Studio*.py' -o -iname 'Titan Titles Studio*.py' -o -iname 'Titan Titulo Studio*.py' -o -iname 'Titan Títulos Studio*.py' -o -iname 'Titan Studio*.lua' -o -iname 'Titan Titles Studio*.lua' -o -iname 'Titan Titulo Studio*.lua' -o -iname 'titan_update.py' -o -iname 'Titan Update.py' \) -print0)
+    done < <(/usr/bin/find "$scripts" -type f \( -iname 'Titan Studio*.py' -o -iname 'Titan Titles Studio*.py' -o -iname 'Titan Titulo Studio*.py' -o -iname 'Titan Títulos Studio*.py' -o -iname 'Titan Studio*.lua' -o -iname 'Titan Titles Studio*.lua' -o -iname 'Titan Titulo Studio*.lua' -o -iname 'titan_update.py' -o -iname 'titan_locale.py' -o -iname 'titan_sfx.py' -o -iname 'Titan Update.py' \) -print0)
     for name in TitanTitlesStudio TitanTitlesStudio-backups; do
         retire "$scripts/Edit/$name" "$backup/legacy-$name"
     done
@@ -91,6 +91,9 @@ for target in "${TARGETS[@]}"; do
     /bin/mkdir "$stage/TitanTitlesStudio"
     /usr/bin/ditto "$PAYLOAD/icons" "$stage/TitanTitlesStudio/icons"
     /usr/bin/install -m 644 "$PAYLOAD/titan_update.py" "$stage/TitanTitlesStudio/titan_update.py"
+    /usr/bin/install -m 644 "$PAYLOAD/titan_locale.py" "$stage/TitanTitlesStudio/titan_locale.py"
+    /usr/bin/install -m 644 "$PAYLOAD/titan_sfx.py" "$stage/TitanTitlesStudio/titan_sfx.py"
+    /usr/bin/ditto "$PAYLOAD/sfx" "$stage/TitanTitlesStudio/sfx"
     /usr/bin/install -m 644 "$PAYLOAD/Titan Titles Studio.py" "$stage/Titan Studio.py"
     printf '%s\n' "$VERSION" > "$stage/TitanTitlesStudio/installed-version.txt"
     if [ "$(/usr/bin/id -u)" = 0 ]; then /usr/sbin/chown -R "$USER_UID:$USER_GID" "$stage"; fi

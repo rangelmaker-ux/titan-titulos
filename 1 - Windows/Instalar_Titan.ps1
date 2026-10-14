@@ -9,7 +9,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
  <Grid Margin="32">
   <Grid.RowDefinitions><RowDefinition Height="80"/><RowDefinition Height="28"/><RowDefinition Height="*"/><RowDefinition Height="56"/><RowDefinition Height="28"/></Grid.RowDefinitions>
   <Image x:Name="Brand" HorizontalAlignment="Left" Width="225" Stretch="Uniform"/>
-  <TextBlock Grid.Row="1" Text="TITÂNIO • AZUL ELÉTRICO • @rangelmaker_" Foreground="#38BDF8" FontSize="11"/>
+  <TextBlock Grid.Row="1" Text="TITÂNIO • AZUL ELÉTRICO" Foreground="#38BDF8" FontSize="11"/>
   <StackPanel Grid.Row="2" Margin="0,18,0,0">
    <TextBlock Text="Seu próximo título começa aqui." FontSize="24" FontWeight="SemiBold" Margin="0,0,0,14"/>
    <TextBlock Text="Layouts, tipografia e movimento para DaVinci Resolve." Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,18"/>
@@ -24,7 +24,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
    <Button x:Name="Remove" Content="Remover Titan" Height="40" Background="#1E293B" Foreground="#E2E8F0" BorderThickness="0"/>
    <Button x:Name="Install" Grid.Column="2" Content="Instalar / atualizar" Height="40" Background="#38BDF8" Foreground="#0B0F17" FontWeight="Bold" BorderThickness="0"/>
   </Grid>
-  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.2.2" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
+  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.3.0" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
  </Grid>
 </Window>
 '@
@@ -62,7 +62,7 @@ function Remove-Titan {
     if (Test-Path -LiteralPath $resources) { Remove-Item -LiteralPath $resources -Recurse }
 }
 function Move-LegacyTitan([string]$backup) {
-    foreach ($name in @('Titan Titles Studio.py','Titan Titulo Studio.py','Titan Titles Studio Backup.py','Titan Titulo Studio Backup.py','Titan Update.py','titan_update.py','TitanTitlesStudio','TitanTitlesStudio-backups')) {
+    foreach ($name in @('Titan Titles Studio.py','Titan Titulo Studio.py','Titan Titles Studio Backup.py','Titan Titulo Studio Backup.py','Titan Update.py','titan_update.py','titan_locale.py','titan_sfx.py','TitanTitlesStudio','TitanTitlesStudio-backups')) {
         $old = Join-Path $target $name
         Assert-TitanPath $old
         if (Test-Path -LiteralPath $old) {
@@ -84,7 +84,7 @@ function Move-LegacyTitan([string]$backup) {
 $window.FindName('Install').Add_Click({
     $backup = $null
     try {
-        foreach ($part in @('Titan Titles Studio.py','titan_update.py','icons')) {
+        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','icons','sfx')) {
             if (-not (Test-Path -LiteralPath (Join-Path $payload $part))) { throw 'Pacote incompleto. Extraia o ZIP inteiro antes de instalar.' }
         }
         $backup = Backup-Titan
@@ -93,7 +93,10 @@ $window.FindName('Install').Add_Click({
         Assert-TitanPath $resources
         New-Item -ItemType Directory -Path $resources -Force | Out-Null
         Copy-Item -LiteralPath (Join-Path $payload 'icons') -Destination $resources -Recurse -Force
-        Copy-Item -LiteralPath (Join-Path $payload 'titan_update.py') -Destination $resources -Force
+        foreach ($module in @('titan_update.py','titan_locale.py','titan_sfx.py')) {
+            Copy-Item -LiteralPath (Join-Path $payload $module) -Destination $resources -Force
+        }
+        Copy-Item -LiteralPath (Join-Path $payload 'sfx') -Destination $resources -Recurse -Force
         Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination (Join-Path $target 'Titan Studio.py') -Force
         Move-LegacyTitan $backup
         $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Studio.'

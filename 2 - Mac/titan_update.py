@@ -1,5 +1,6 @@
 """Titan Titles Studio: public GitHub Releases, verified packages and rollback."""
 import ast
+import base64
 import hashlib
 import json
 import os
@@ -15,6 +16,7 @@ import time
 import urllib.request
 from urllib.parse import urlsplit
 import zipfile
+import zlib
 
 REPO = 'rangelmaker-ux/titan-titulos'
 API = 'https://api.github.com/repos/' + REPO + '/releases/latest'
@@ -88,7 +90,7 @@ def validate_package(path, expected_version):
             raise ValueError('Pacote incompleto.')
         data = {}
         for name, digest in files.items():
-            if name not in ('Titan Titles Studio.py', 'titan_update.py') and not re.fullmatch(r'icons/[A-Za-z0-9_-]+\.(png|jpg)', name):
+            if name not in ('Titan Titles Studio.py', 'titan_update.py', 'titan_locale.py', 'titan_sfx.py', 'sfx/manifest.json') and not re.fullmatch(r'(?:icons/[A-Za-z0-9_-]+\.(?:png|jpg)|sfx/[A-Za-z0-9_-]+\.wav)', name):
                 raise ValueError('Arquivo não permitido na atualização.')
             content = archive.read(name)
             if hashlib.sha256(content).hexdigest() != digest:
@@ -96,7 +98,51 @@ def validate_package(path, expected_version):
             if name.endswith('.py'):
                 ast.parse(content.decode('utf-8'))
             data[name] = content
+        data.update(read_resource_bundle(data['titan_update.py']))
+        if not {'titan_locale.py','titan_sfx.py','sfx/whoosh.wav','sfx/glitch.wav'} <= set(data):
+            raise ValueError('Pacote de recursos incompleto.')
         return data
+
+def read_resource_bundle(source):
+    """Read data literals without executing downloaded code. Legacy updaters
+    accept only the original file list; their new updater contains the resources."""
+    tree=ast.parse(source.decode('utf-8'))
+    value=next((n.value for n in tree.body if isinstance(n,ast.Assign) and
+                any(isinstance(t,ast.Name) and t.id=='_TITAN_BUNDLE' for t in n.targets)),None)
+    if value is None:return {}
+    packed=base64.b64decode(ast.literal_eval(value),validate=True)
+    raw=zlib.decompressobj().decompress(packed,MAX_BYTES+1)
+    if len(raw)>MAX_BYTES:raise ValueError('Recursos excedem o limite.')
+    bundle=json.loads(raw)
+    result={}
+    for name,info in bundle.items():
+        if name not in ('titan_locale.py','titan_sfx.py','sfx/manifest.json') and not re.fullmatch(r'sfx/[A-Za-z0-9_-]+\.wav',name):
+            raise ValueError('Recurso de atualização inválido.')
+        content=base64.b64decode(info['data'],validate=True)
+        if hashlib.sha256(content).hexdigest()!=info['sha256']:raise ValueError('Recurso alterado.')
+        if name.endswith('.py'):ast.parse(content.decode('utf-8'))
+        result[name]=content
+    return result
+
+def retire_legacy(root,backup):
+    for name in ('Titan Titles Studio.py', 'Titan Titulo Studio.py',
+                 'Titan Titles Studio Backup.py', 'Titan Titulo Studio Backup.py',
+                 'Titan Update.py', 'titan_update.py', 'titan_locale.py', 'titan_sfx.py', 'TitanTitlesStudio', 'TitanTitlesStudio-backups'):
+        legacy = root / name
+        if not legacy.exists():continue
+        if legacy.is_symlink() or (hasattr(legacy, 'is_junction') and legacy.is_junction()):
+            raise ValueError('Arquivo antigo redirecionado; limpeza interrompida.')
+        saved=backup/('legacy-'+name)
+        if legacy.is_dir():
+            with zipfile.ZipFile(str(saved)+'.zip','w',zipfile.ZIP_DEFLATED) as archive:
+                for file in legacy.rglob('*'):
+                    if file.is_file():archive.write(file,str(file.relative_to(legacy)))
+            for script in legacy.rglob('*'):
+                if script.is_file() and script.suffix.lower() in ('.py','.lua'):script.unlink()
+            try:shutil.rmtree(legacy)
+            except OSError:
+                if any(p.suffix.lower() in ('.py','.lua') for p in legacy.rglob('*') if p.is_file()):raise
+        else:shutil.move(str(legacy),str(saved))
 
 def install_package(path, expected_version, install_root):
     data = validate_package(path, expected_version)
@@ -144,33 +190,7 @@ def install_package(path, expected_version, install_root):
             else:
                 targets[name].write_bytes(old[name])
         raise
-    # Retire old menu entries only after the new entry is installed successfully.
-    for name in ('Titan Titles Studio.py', 'Titan Titulo Studio.py',
-                 'Titan Titles Studio Backup.py', 'Titan Titulo Studio Backup.py',
-                 'Titan Update.py', 'titan_update.py', 'TitanTitlesStudio', 'TitanTitlesStudio-backups'):
-        legacy = root / name
-        if legacy.exists():
-            if legacy.is_symlink() or (hasattr(legacy, 'is_junction') and legacy.is_junction()):
-                raise ValueError('Arquivo antigo redirecionado; limpeza interrompida.')
-            saved = backup / ('legacy-' + name)
-            if legacy.is_dir():
-                # Archive old nested backups without exceeding Windows path limits.
-                with zipfile.ZipFile(str(saved) + '.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-                    for file in legacy.rglob('*'):
-                        if file.is_file():
-                            archive.write(file, str(file.relative_to(legacy)))
-                # Resolve may hold the directory open on Windows. Its script files
-                # can still be removed without moving the open directory itself.
-                for script in legacy.rglob('*'):
-                    if script.is_file() and script.suffix.lower() in ('.py', '.lua'):
-                        script.unlink()
-                try:
-                    shutil.rmtree(legacy)
-                except OSError:
-                    if any(p.suffix.lower() in ('.py', '.lua') for p in legacy.rglob('*') if p.is_file()):
-                        raise
-            else:
-                shutil.move(str(legacy), str(saved))
+    retire_legacy(root,backup)
     return str(backup)
 
 class Atualizador:

@@ -4,7 +4,7 @@ O plugin consulta Releases públicas estáveis. Quem tem uma versão anterior a 
 
 1. Edite `src/Titan Titles Studio.py` e/ou `src/titan_update.py`.
 2. Atualize `VERSION` e `APP_VERSION` com a mesma versão maior que a publicada; atualize a versão nos instaladores e `RELEASE_NOTES.md`.
-3. Sincronize as cópias do código em `1 - Windows/Arquivos` e `2 - Mac`.
+3. Rode `python tools/sync_packages.py` para sincronizar os módulos, ícones, sons e versões dos instaladores.
 4. Rode `python -m unittest discover -s tests -v` e `python tools/build_release.py`.
 5. Faça commit e push para main. Publique uma tag, por exemplo `git tag v3.2.1` e `git push origin v3.2.1`.
 
