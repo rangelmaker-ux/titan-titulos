@@ -105,12 +105,13 @@ def install_package(path, expected_version, install_root):
         raise ValueError('Pasta de instalação inválida.')
     # Canonicalize Windows 8.3 names without confusing them with redirects.
     root = root.resolve()
-    resources = root / 'TitanTitlesStudio'
-    targets = {name: root / name if name == 'Titan Titles Studio.py' else resources / name for name in data}
+    fusion_root = root.parent.parent
+    resources = fusion_root / 'TitanTitlesStudio'
+    targets = {name: root / 'Titan Studio.py' if name == 'Titan Titles Studio.py' else resources / name for name in data}
     for target in targets.values():
         if target.resolve() != target.absolute():
             raise ValueError('Arquivo redirecionado; reinstale o plugin.')
-    backup_parent = root / 'TitanTitlesStudio-backups'
+    backup_parent = fusion_root / 'TitanTitlesStudio-backups'
     if backup_parent.is_symlink():
         raise ValueError('Pasta de backup inválida.')
     backup = backup_parent / (time.strftime('%Y%m%d-%H%M%S') + '-' + str(time.time_ns()))
@@ -143,6 +144,33 @@ def install_package(path, expected_version, install_root):
             else:
                 targets[name].write_bytes(old[name])
         raise
+    # Retire old menu entries only after the new entry is installed successfully.
+    for name in ('Titan Titles Studio.py', 'Titan Titulo Studio.py',
+                 'Titan Titles Studio Backup.py', 'Titan Titulo Studio Backup.py',
+                 'Titan Update.py', 'titan_update.py', 'TitanTitlesStudio', 'TitanTitlesStudio-backups'):
+        legacy = root / name
+        if legacy.exists():
+            if legacy.is_symlink() or (hasattr(legacy, 'is_junction') and legacy.is_junction()):
+                raise ValueError('Arquivo antigo redirecionado; limpeza interrompida.')
+            saved = backup / ('legacy-' + name)
+            if legacy.is_dir():
+                # Archive old nested backups without exceeding Windows path limits.
+                with zipfile.ZipFile(str(saved) + '.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+                    for file in legacy.rglob('*'):
+                        if file.is_file():
+                            archive.write(file, str(file.relative_to(legacy)))
+                # Resolve may hold the directory open on Windows. Its script files
+                # can still be removed without moving the open directory itself.
+                for script in legacy.rglob('*'):
+                    if script.is_file() and script.suffix.lower() in ('.py', '.lua'):
+                        script.unlink()
+                try:
+                    shutil.rmtree(legacy)
+                except OSError:
+                    if any(p.suffix.lower() in ('.py', '.lua') for p in legacy.rglob('*') if p.is_file()):
+                        raise
+            else:
+                shutil.move(str(legacy), str(saved))
     return str(backup)
 
 class Atualizador:

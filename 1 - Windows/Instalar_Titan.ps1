@@ -1,7 +1,8 @@
 ﻿$ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework
 $target = Join-Path $env:APPDATA 'Blackmagic Design\DaVinci Resolve\Support\Fusion\Scripts\Edit'
-$resources = Join-Path $target 'TitanTitlesStudio'
+$storage = Split-Path -Parent (Split-Path -Parent $target)
+$resources = Join-Path $storage 'TitanTitlesStudio'
 $payload = Join-Path $PSScriptRoot 'Arquivos'
 [xml]$markup = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Titan Titles Studio" Width="600" Height="620" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Background="#0B0F17" Foreground="#E2E8F0" FontFamily="Segoe UI">
@@ -23,7 +24,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
    <Button x:Name="Remove" Content="Remover Titan" Height="40" Background="#1E293B" Foreground="#E2E8F0" BorderThickness="0"/>
    <Button x:Name="Install" Grid.Column="2" Content="Instalar / atualizar" Height="40" Background="#38BDF8" Foreground="#0B0F17" FontWeight="Bold" BorderThickness="0"/>
   </Grid>
-  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.2.0" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
+  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.2.1" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
  </Grid>
 </Window>
 '@
@@ -33,20 +34,20 @@ if (Test-Path -LiteralPath $brand) { $window.FindName('Brand').Source = $brand }
 $status = $window.FindName('Status')
 function Assert-TitanPath([string]$path) {
     $resolved = [IO.Path]::GetFullPath($path)
-    $base = [IO.Path]::GetFullPath($target).TrimEnd('\') + '\'
+    $base = [IO.Path]::GetFullPath($storage).TrimEnd('\') + '\'
     if (-not $resolved.StartsWith($base, [StringComparison]::OrdinalIgnoreCase)) { throw 'Destino inesperado.' }
     $check = $resolved
-    while ($check -and $check.Length -ge [IO.Path]::GetFullPath($target).Length) {
+    while ($check -and $check.Length -ge [IO.Path]::GetFullPath($storage).Length) {
         if ((Test-Path -LiteralPath $check) -and ((Get-Item -LiteralPath $check -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Pasta redirecionada; instalação interrompida.' }
         $check = Split-Path -Parent $check
     }
 }
 function Backup-Titan {
-    $parent = Join-Path $target 'TitanTitlesStudio-backups'
+    $parent = Join-Path $storage 'TitanTitlesStudio-backups'
     Assert-TitanPath $parent
     $backup = Join-Path $parent ([Guid]::NewGuid().ToString())
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
-    $script = Join-Path $target 'Titan Titles Studio.py'
+    $script = Join-Path $target 'Titan Studio.py'
     Assert-TitanPath $script
     Assert-TitanPath $resources
     if (Test-Path -LiteralPath $script) { Copy-Item -LiteralPath $script -Destination $backup }
@@ -54,11 +55,31 @@ function Backup-Titan {
     return $backup
 }
 function Remove-Titan {
-    $script = Join-Path $target 'Titan Titles Studio.py'
+    $script = Join-Path $target 'Titan Studio.py'
     Assert-TitanPath $script
     Assert-TitanPath $resources
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script }
     if (Test-Path -LiteralPath $resources) { Remove-Item -LiteralPath $resources -Recurse }
+}
+function Move-LegacyTitan([string]$backup) {
+    foreach ($name in @('Titan Titles Studio.py','Titan Titulo Studio.py','Titan Titles Studio Backup.py','Titan Titulo Studio Backup.py','Titan Update.py','titan_update.py','TitanTitlesStudio','TitanTitlesStudio-backups')) {
+        $old = Join-Path $target $name
+        Assert-TitanPath $old
+        if (Test-Path -LiteralPath $old) {
+            $saved = Join-Path $backup ('legacy-' + $name)
+            if ((Get-Item -LiteralPath $old).PSIsContainer) {
+                Compress-Archive -LiteralPath $old -DestinationPath ($saved + '.zip') -CompressionLevel Fastest
+                # Resolve can hold a directory open. Retire script files individually.
+                Get-ChildItem -LiteralPath $old -Recurse -File | Where-Object { $_.Extension -in '.py','.lua' } | ForEach-Object {
+                    Assert-TitanPath $_.FullName
+                    Remove-Item -LiteralPath $_.FullName -Force
+                }
+                try { Remove-Item -LiteralPath $old -Recurse -Force } catch {
+                    if (@(Get-ChildItem -LiteralPath $old -Recurse -File | Where-Object { $_.Extension -in '.py','.lua' }).Count) { throw }
+                }
+            } else { Move-Item -LiteralPath $old -Destination $saved }
+        }
+    }
 }
 $window.FindName('Install').Add_Click({
     $backup = $null
@@ -67,19 +88,24 @@ $window.FindName('Install').Add_Click({
             if (-not (Test-Path -LiteralPath (Join-Path $payload $part))) { throw 'Pacote incompleto. Extraia o ZIP inteiro antes de instalar.' }
         }
         $backup = Backup-Titan
+        New-Item -ItemType Directory -Path $target -Force | Out-Null
         if ($window.FindName('Clean').IsChecked) { Remove-Titan }
         Assert-TitanPath $resources
         New-Item -ItemType Directory -Path $resources -Force | Out-Null
         Copy-Item -LiteralPath (Join-Path $payload 'icons') -Destination $resources -Recurse -Force
         Copy-Item -LiteralPath (Join-Path $payload 'titan_update.py') -Destination $resources -Force
-        Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination $target -Force
-        $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Titles Studio.'
+        Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination (Join-Path $target 'Titan Studio.py') -Force
+        Move-LegacyTitan $backup
+        $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Studio.'
     } catch {
         if ($backup) {
             try {
+                Get-ChildItem -LiteralPath $backup -File -Filter 'legacy-*.py' | ForEach-Object {
+                    Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $target $_.Name.Substring(7)) -Force
+                }
                 Remove-Titan
-                if (Test-Path -LiteralPath (Join-Path $backup 'TitanTitlesStudio')) { Copy-Item -LiteralPath (Join-Path $backup 'TitanTitlesStudio') -Destination $target -Recurse -Force }
-                if (Test-Path -LiteralPath (Join-Path $backup 'Titan Titles Studio.py')) { Copy-Item -LiteralPath (Join-Path $backup 'Titan Titles Studio.py') -Destination $target -Force }
+                if (Test-Path -LiteralPath (Join-Path $backup 'TitanTitlesStudio')) { Copy-Item -LiteralPath (Join-Path $backup 'TitanTitlesStudio') -Destination $storage -Recurse -Force }
+                if (Test-Path -LiteralPath (Join-Path $backup 'Titan Studio.py')) { Copy-Item -LiteralPath (Join-Path $backup 'Titan Studio.py') -Destination $target -Force }
             } catch { $status.Text = "Falha ao restaurar. Backup: $backup"; return }
         }
         $status.Text = 'Falha na instalação: ' + $_.Exception.Message
@@ -87,7 +113,7 @@ $window.FindName('Install').Add_Click({
 })
 $window.FindName('Remove').Add_Click({
     if ([Windows.MessageBox]::Show('Remover apenas o Titan Titles Studio? Outros plugins serão preservados. Uma cópia de segurança será guardada.', 'Titan Titles Studio', 'YesNo', 'Question') -ne 'Yes') { return }
-    try { $null = Backup-Titan; Remove-Titan; $status.Text = 'Titan removido. Backup preservado.' }
+    try { $backup = Backup-Titan; Move-LegacyTitan $backup; Remove-Titan; $status.Text = 'Titan removido. Backup preservado.' }
     catch { $status.Text = 'Não foi possível remover: ' + $_.Exception.Message }
 })
 $null = $window.ShowDialog()

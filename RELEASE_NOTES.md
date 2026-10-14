@@ -1,10 +1,8 @@
-Titan Titles Studio v3.2.0
+Titan Titles Studio v3.2.1
 
-- Atualizações pelo GitHub no Windows e no Mac, com verificação de integridade, backup e recuperação em caso de falha.
-- Instalador Windows com identidade Titânio & Azul Elétrico; Mac com diálogos nativos e cabeçalho da marca.
-- Opções de instalar, atualizar e remover apenas o Titan.
-- Correções de detecção de Text+ e timecode drop-frame; pacotes sincronizados.
+- Uma única entrada no menu: Titan Studio.
+- Recursos, atualizador e backups ficam em Fusion, fora de Scripts.
+- Migração automática dos backups e arquivos antigos conhecidos do Titan para fora do menu.
+- Instaladores Windows e Mac corrigidos; preserva outros plugins.
 
-Baixe o ZIP do seu sistema, extraia tudo e execute o instalador. O pacote Update é usado pelo atualizador interno.
-
-Testes automatizados realizados; teste no Resolve/macOS pendente. Esta versão não é assinada/notarizada.
+Reinstale este pacote para corrigir instalações antigas. Atualizações automáticas pelo GitHub exigem Releases públicas; repositório privado exige serviço de distribuição autenticado, ainda não implementado.

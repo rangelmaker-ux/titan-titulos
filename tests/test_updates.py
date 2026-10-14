@@ -35,20 +35,20 @@ class Updates(unittest.TestCase):
         with zipfile.ZipFile(self.dist/'Titan-Titles-Studio-Windows.zip') as z:
             self.assertIn('Instalar_Titan.ps1', z.namelist())
     def test_install_backup_preserves_other_plugins(self):
-        root=self.base/'Edit'; root.mkdir()
-        (root/'Titan Titles Studio.py').write_bytes(b'old script')
+        root=self.base/'Fusion/Scripts/Edit'; root.mkdir(parents=True)
+        (root/'Titan Studio.py').write_bytes(b'old script')
         (root/'other-plugin.py').write_bytes(b'keep')
         (root/'icons').mkdir(); (root/'icons/other.png').write_bytes(b'keep icon')
         backup=u.install_package(self.archive,self.current,root)
         self.assertEqual((Path(backup)/'Titan Titles Studio.py').read_bytes(), b'old script')
         self.assertEqual((root/'other-plugin.py').read_bytes(),b'keep')
         self.assertEqual((root/'icons/other.png').read_bytes(),b'keep icon')
-        self.assertEqual((root/'TitanTitlesStudio/titan_update.py').read_bytes(),(ROOT/'src/titan_update.py').read_bytes())
+        self.assertEqual((root.parent.parent/'TitanTitlesStudio/titan_update.py').read_bytes(),(ROOT/'src/titan_update.py').read_bytes())
     def test_failed_install_rolls_back(self):
-        root=self.base/'Edit'; root.mkdir()
-        (root/'Titan Titles Studio.py').write_bytes(b'old script')
-        (root/'TitanTitlesStudio').mkdir()
-        (root/'TitanTitlesStudio/titan_update.py').write_bytes(b'old updater')
+        root=self.base/'Fusion/Scripts/Edit'; root.mkdir(parents=True)
+        (root/'Titan Studio.py').write_bytes(b'old script')
+        (root.parent.parent/'TitanTitlesStudio').mkdir()
+        (root.parent.parent/'TitanTitlesStudio/titan_update.py').write_bytes(b'old updater')
         real_replace=u.os.replace
         calls=[0]
         def fail_once(*args):
@@ -57,9 +57,22 @@ class Updates(unittest.TestCase):
             return real_replace(*args)
         with patch.object(u.os,'replace',side_effect=fail_once):
             with self.assertRaises(OSError): u.install_package(self.archive,self.current,root)
-        self.assertEqual((root/'Titan Titles Studio.py').read_bytes(),b'old script')
-        self.assertEqual((root/'TitanTitlesStudio/titan_update.py').read_bytes(),b'old updater')
-        self.assertFalse((root/'TitanTitlesStudio/icons/arrow_down.png').exists())
+        self.assertEqual((root/'Titan Studio.py').read_bytes(),b'old script')
+        self.assertEqual((root.parent.parent/'TitanTitlesStudio/titan_update.py').read_bytes(),b'old updater')
+        self.assertFalse((root.parent.parent/'TitanTitlesStudio/icons/arrow_down.png').exists())
+    def test_only_one_titan_entry_after_migration(self):
+        root=self.base/'Fusion/Scripts/Edit';root.mkdir(parents=True)
+        (root/'Titan Titles Studio.py').write_bytes(b'legacy')
+        (root/'TitanTitlesStudio').mkdir()
+        (root/'TitanTitlesStudio/titan_update.py').write_bytes(b'old module')
+        (root/'TitanTitlesStudio-backups').mkdir()
+        (root/'TitanTitlesStudio-backups/Titan Titles Studio Backup.py').write_bytes(b'old backup')
+        backup=u.install_package(self.archive,self.current,root)
+        scripts=list(root.parent.rglob('*.py'))
+        self.assertEqual([p.name for p in scripts],['Titan Studio.py'])
+        self.assertEqual((Path(backup)/'legacy-Titan Titles Studio.py').read_bytes(),b'legacy')
+        u.install_package(self.archive,self.current,root)
+        self.assertEqual([p.name for p in root.parent.rglob('*.py')],['Titan Studio.py'])
     def test_tampered_package_rejected(self):
         with zipfile.ZipFile(self.archive) as z: entries={n:z.read(n) for n in z.namelist()}
         entries['Titan Titles Studio.py']=b'print("tampered")'

@@ -11,7 +11,7 @@ Baixe o ZIP do seu sistema na [última versão](https://github.com/rangelmaker-u
 
 Os instaladores permitem instalar, reinstalar removendo a versão anterior ou desinstalar. Um backup é preservado; outros plugins e títulos nos projetos permanecem intactos.
 
-No Resolve: Workspace > Scripts > Edit > Titan Titles Studio.
+No Resolve: Workspace > Scripts > Edit > Titan Studio.
 
 Veja [INSTALL.md](INSTALL.md) para instalação, permissões e recuperação.
 

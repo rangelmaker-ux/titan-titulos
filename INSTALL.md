@@ -16,7 +16,7 @@ O instalador usa diálogos nativos do macOS e um cabeçalho Titânio/Azul no Ter
 
 ## Abrir o plugin
 
-No DaVinci Resolve: Workspace > Scripts > Edit > Titan Titles Studio. Se não aparecer, reinicie o Resolve.
+No DaVinci Resolve: Workspace > Scripts > Edit > Titan Studio. Se não aparecer, reinicie o Resolve.
 
 ## Atualizações
 
@@ -28,8 +28,8 @@ No modo de dispatcher do Resolve sem StepLoop, use o botão de atualizar a leitu
 
 ## Remoção e backup
 
-Os instaladores removem apenas `Titan Titles Studio.py` e a pasta exclusiva `TitanTitlesStudio`. Não apagam a pasta compartilhada `icons` da instalação antiga, porque outros scripts podem utilizá-la. Backups ficam em `TitanTitlesStudio-backups`, junto à pasta de scripts Edit. Projetos e títulos já criados na timeline são preservados.
+Os instaladores removem apenas `Titan Studio.py` e a pasta exclusiva `TitanTitlesStudio`. Não apagam a pasta compartilhada `icons` da instalação antiga, porque outros scripts podem utilizá-la. Backups ficam em `TitanTitlesStudio-backups`, na pasta Fusion, fora de Scripts. Projetos e títulos já criados na timeline são preservados.
 
-Para restaurar: feche o Titan; copie `Titan Titles Studio.py` do backup para Edit e a pasta `TitanTitlesStudio` do backup para Edit. Em backups criados pelo atualizador, copie `titan_update.py` e `icons` para `Edit/TitanTitlesStudio`.
+Para restaurar: feche o Titan; copie o script do backup para Edit com o nome `Titan Studio.py` e a pasta `TitanTitlesStudio` para Fusion (fora de Scripts). Em backups criados pelo atualizador, copie `titan_update.py` e `icons` para `Fusion/TitanTitlesStudio`.
 
 Esta distribuição não é assinada/notarizada. Validação de instalação e interação no Resolve do Mac deve ser realizada em um Mac antes de anunciar compatibilidade comercial completa.
