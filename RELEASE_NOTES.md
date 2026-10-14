@@ -1,9 +1,7 @@
-Titan Titles Studio v3.3.9
+Titan Titles Studio v3.3.10
 
-Corrige o recebimento de atualizações no macOS: os resultados da busca e do download agora chegam à interface por eventos nativos, funcionando tanto com RunLoop quanto com StepLoop. O About recebe os estados de buscar, baixar e instalar sem depender do ciclo de eventos do Windows.
+Corrige a criação da faixa de efeitos que desaparecia logo depois: o corte de áudio passado ao AppendToTimeline estava um frame curto. A validação detectava essa diferença e desfazia a inserção. Agora o limite de corte corresponde ao intervalo real devolvido pelo Resolve.
 
-O atualizador usa os certificados públicos do macOS para validar HTTPS, mesmo quando o Python do Resolve não tem certifi. A verificação de certificados, os limites de download e a validação SHA-256 permanecem ativos.
+As janelas dos sons também convertem a duração da animação para os frames da timeline quando o template Text+ tem FPS diferente. A identificação e os sons por animação continuam funcionando no Windows e no Mac.
 
-Se o Mac não consegue receber a correção pelo atualizador antigo, instale Titan-Titles-Studio-Mac-3.3.9.pkg uma vez e reabra o Resolve. As próximas atualizações podem ser buscadas em About > Buscar atualizações.
-
-Validação: fluxo completo de busca, download e instalação com eventos nativos sem StepLoop; certificados nativos sem certifi; instalador e reinstalação no macOS; acesso HTTPS ao GitHub a partir do macOS.
+Validação dentro do DaVinci Resolve 21.1.1 no Windows: inserção e substituição de sons em timelines de 24, 29.97 e 60 fps, com início/fim exatos, marcadores e ausência de duplicatas. Projetos temporários removidos e projeto original restaurado. Testes automatizados e instalação nativa no macOS também fazem parte da publicação; a reprodução dentro do Resolve no Mac deve ser conferida no computador do usuário.

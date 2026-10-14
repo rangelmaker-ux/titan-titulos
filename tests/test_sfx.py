@@ -59,7 +59,9 @@ class Pool:
     def AppendToTimeline(self,infos):
         if self.fail:return []
         info=infos[0];self.last=info
-        clip=Clip(info['recordFrame'],info['recordFrame']+info['endFrame']+1)
+        # Observed in Resolve 21.1: AppendToTimeline's endFrame is exclusive
+        # for audio. An endFrame of 20 inserts 20 timeline frames at 24 fps.
+        clip=Clip(info['recordFrame'],info['recordFrame']+info['endFrame'])
         self.timeline.tracks[info['trackIndex']].append(clip);return [clip]
 
 class Sounds(unittest.TestCase):
@@ -92,6 +94,11 @@ class Sounds(unittest.TestCase):
         events=sfx.plan_events([entry],lambda e:{'in':{'slide'},'out':{'blur'},'sfx_in':'glitch','sfx_out':'none'},20)
         self.assertEqual([(e['start'],e['effect']) for e in events],[(100,'glitch')])
         self.assertEqual(sfx.plan_events([entry],lambda e:{'in':set(),'sfx_in':'whoosh'},20),[])
+    def test_audio_range_uses_timeline_frames_when_template_fps_differs(self):
+        entry={'uid':'title','item':Clip(100,220)}
+        events=sfx.plan_events([entry],lambda e:{'in':{'slide'},'out':{'slide'},
+            'duration':20,'animation_fps':30},20,timeline_fps=24)
+        self.assertEqual([(e['start'],e['frames']) for e in events],[(100,17),(203,17)])
     def test_six_sounds_at_animation_start(self):
         self.assertEqual(set(sfx.EFFECTS.values()),{'whoosh','bounce','glitch','shake','airy','motionblur'})
         for animation,effect in sfx.EFFECTS.items():
@@ -128,6 +135,7 @@ class Sounds(unittest.TestCase):
         self.assertEqual(len(allclips),3);self.assertIn(voice,allclips)
         self.assertEqual(len(pool.clips),2)
         self.assertEqual(pool.last['mediaType'],2)
+        self.assertEqual(pool.last['endFrame'],21)
         service.sync(project,timeline,[entry],state,20,False)
         self.assertEqual([c for clips in timeline.tracks.values() for c in clips],[voice])
     def test_insertion_failure_preserves_existing_audio(self):

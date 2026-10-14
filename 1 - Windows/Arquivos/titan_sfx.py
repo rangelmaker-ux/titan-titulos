@@ -38,7 +38,8 @@ def load_animation(entry):
 def save_animation(entry,state):
     item=entry['item']
     data={'version':1,'in':sorted(state.get('in',set())),'out':sorted(state.get('out',set())),
-          'mblur':bool(state.get('mblur')),'duration':state.get('duration',20)}
+          'mblur':bool(state.get('mblur')),'duration':state.get('duration',20),
+          'animation_fps':state.get('animation_fps',0)}
     for side in ('in','out'):
         data['dir_'+side]=state.get('dir_'+side,'none')
         data['sfx_'+side]=state.get('sfx_'+side,'auto')
@@ -54,7 +55,7 @@ def save_animation(entry,state):
         if frame is None:return
         item.AddMarker(frame,'Blue','Titan Animation','',1,payload)
 
-def plan_events(entries,states,duration,mappings=None):
+def plan_events(entries,states,duration,mappings=None,timeline_fps=None):
     events=[]
     for entry in entries:
         item=entry['item']
@@ -63,7 +64,11 @@ def plan_events(entries,states,duration,mappings=None):
         if length<=0:continue
         state=states(entry)
         # Same bounded duration as Animator.render, including its end keyframe.
-        span=min(length,max(2,min(int(state.get('duration',duration)),max(2,length//2)))+1)
+        rate=float(timeline_fps or state.get('animation_fps') or 1)
+        source_rate=float(state.get('animation_fps') or rate)
+        source_length=max(1,int(round(length*source_rate/rate)))
+        source_span=min(source_length,max(2,min(int(state.get('duration',duration)),max(2,source_length//2)))+1)
+        span=max(1,min(length,int(round(source_span*rate/source_rate))))
         for side in ('in','out'):
             choice=state.get('sfx_'+side,'auto')
             active=bool(state.get(side,set()) or state.get('mblur'))
@@ -203,8 +208,8 @@ class SoundEffects:
     def sync(self,project,timeline,entries,states,duration,enabled=True,mappings=None):
         uids={str(e['uid']) for e in entries}
         if not uids:return 0
-        events=plan_events(entries,states,duration,mappings) if enabled else []
         fps=float(timeline.GetSetting('timelineFrameRate') or 24)
+        events=plan_events(entries,states,duration,mappings,fps) if enabled else []
         timeline_id=str(timeline.GetUniqueId()) if hasattr(timeline,'GetUniqueId') else str(id(timeline))
         context=(str(project.GetUniqueId()),timeline_id)
         fingerprints={uid:tuple((e['side'],e['effect'],e['start'],e['frames'],e['gain'],fps)
@@ -243,12 +248,13 @@ class SoundEffects:
                 if source_fps<=0:source_fps=fps
                 source_frames=max(1,int(round(event['frames']*source_fps/fps)))
                 result=values(pool.AppendToTimeline([{'mediaPoolItem':media,'mediaType':2,
-                    'startFrame':0,'endFrame':source_frames-1,'recordFrame':start,'trackIndex':track}]))
+                    'startFrame':0,'endFrame':source_frames,'recordFrame':start,'trackIndex':track}]))
                 made.extend(result)
                 if len(result)!=1:raise RuntimeError('Could not insert sound effect.')
                 clip=result[0]
                 if int(round(float(clip.GetStart())))!=start or int(round(float(clip.GetEnd())))!=end:
-                    raise RuntimeError('Resolve inserted sound outside its animation window.')
+                    raise RuntimeError('O Resolve inseriu o som em %s–%s; o intervalo esperado era %s–%s.' %
+                                       (clip.GetStart(),clip.GetEnd(),start,end))
                 self._add_marker(clip,event)
                 clip.SetName('Titan '+event['effect']+' '+event['side'])
                 lanes[track].append((start,end))
