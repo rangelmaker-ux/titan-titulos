@@ -1,5 +1,5 @@
-Titan Titles Studio v3.3.2
+Titan Titles Studio v3.3.3
 
-Correção do fechamento no Windows: o evento de saída agora é protegido contra chamadas duplicadas durante o encerramento da janela hospedada pelo DaVinci Resolve.
+Windows e Mac mantêm a interface responsiva durante a transcrição. O estado mostra o tempo decorrido e informa erros de geração em vez de deixar a etapa parecer congelada. A geração bloqueia acionamentos duplicados e registra somente metadados de duração e contagem, sem registrar voz ou transcrição.
 
-Inclui os cinco efeitos de som com escolha automática ou manual por título, versões PT-BR/English/Español e instaladores Windows/Mac da versão 3.3.1.
+Sons de entrada/saída sincronizados com os títulos selecionados ao definir animações. A escolha manual pode ser preparada antes da animação; ao ativá-la, o efeito entra no frame inicial. Erros de importação e inserção agora aparecem no status.
