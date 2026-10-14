@@ -24,7 +24,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
    <Button x:Name="Remove" Content="Remover Titan" Height="40" Background="#1E293B" Foreground="#E2E8F0" BorderThickness="0"/>
    <Button x:Name="Install" Grid.Column="2" Content="Instalar / atualizar" Height="40" Background="#38BDF8" Foreground="#0B0F17" FontWeight="Bold" BorderThickness="0"/>
   </Grid>
-  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.3.1" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
+  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.3.2" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
  </Grid>
 </Window>
 '@

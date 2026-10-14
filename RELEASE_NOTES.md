@@ -1,7 +1,5 @@
-Titan Titles Studio v3.3.1
+Titan Titles Studio v3.3.2
 
-Slide: Whoosh; Bounce: Impact; Flicker: Glitch; Shake: Clicks; Blur: Air. Motion Blur follows the selected movement. Only five sound files included.
+Correção do fechamento no Windows: o evento de saída agora é protegido contra chamadas duplicadas durante o encerramento da janela hospedada pelo DaVinci Resolve.
 
-Manual entry/exit sound selectors: Automatic, five effects, or No sound. Choices persist per title. Audio starts on each animation initial frame, with quieter exits and no duplicates when reapplying.
-
-Includes PT-BR/English/Espanol, apply position to all, About, Windows/Mac installers and legacy menu cleanup.
+Inclui os cinco efeitos de som com escolha automática ou manual por título, versões PT-BR/English/Español e instaladores Windows/Mac da versão 3.3.1.
