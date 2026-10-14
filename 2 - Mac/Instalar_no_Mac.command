@@ -3,7 +3,7 @@ set -euo pipefail
 DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 TARGET="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
 STORE="$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp/Data/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
-printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.4.0\n  TITÂNIO & AZUL ELÉTRICO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
+printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.4.1\n  TITÂNIO & AZUL ELÉTRICO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
 printf '\nLayouts, tipografia e movimento para DaVinci Resolve.\nAtualizações pelo GitHub com backup automático.\n\n'
 ACTION=$(/usr/bin/osascript <<'APPLESCRIPT'
 button returned of (display dialog "Seu próximo título começa aqui.\n\nFeche o Titan antes de instalar ou remover.\nAtualizações pelo GitHub com backup automático." with title "Titan Titles Studio" buttons {"Cancelar", "Remover", "Instalar"} default button "Instalar" cancel button "Cancelar")

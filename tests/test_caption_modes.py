@@ -36,6 +36,10 @@ class CaptionModes(unittest.TestCase):
         ns=functions({'common_caption_text'})
         words='Uma legenda comum permanece estável e legível.'.split()
         self.assertEqual(ns['common_caption_text'](words,15).split(),words)
+        self.assertLessEqual(len(ns['common_caption_text'](words,15).splitlines()),2)
+    def test_short_plain_caption_stays_on_one_line(self):
+        ns=functions({'common_caption_text'})
+        self.assertEqual(ns['common_caption_text']('você que me acompanhe'.split(),10),'você que me acompanhe')
     def test_plain_style_has_fixed_size_and_no_animation(self):
         ns=functions({'_style_common_caption'},methods=True)
         state={'in':{'slide'},'out':{'blur'},'mblur':True};fonts=[];colors=[];rendered=[]
