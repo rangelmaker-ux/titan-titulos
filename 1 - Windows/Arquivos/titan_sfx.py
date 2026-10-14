@@ -80,12 +80,22 @@ def export_without_sfx(timeline,export):
                             or bool(clips and all(owned_uid(c) for c in clips)))
             if is_titan_track and clips and all(owned_uid(c) for c in clips):
                 if timeline.GetIsTrackEnabled('audio',track):
-                    if not timeline.SetTrackEnable('audio',track,False):raise RuntimeError('Could not mute Titan sound track.')
+                    _set_track_enabled(timeline,track,False)
                     muted.append(track)
         return export()
     finally:
         for track in muted:
-            if not timeline.SetTrackEnable('audio',track,True):raise RuntimeError('Could not restore Titan sound track.')
+            _set_track_enabled(timeline,track,True)
+
+def _set_track_enabled(timeline,track,enabled):
+    """Resolve's Lua/Python bridge may return nil on macOS after a successful call."""
+    result=timeline.SetTrackEnable('audio',track,enabled)
+    if result is True:return
+    try:actual=timeline.GetIsTrackEnabled('audio',track)
+    except Exception:actual=None
+    if actual is bool(enabled):return
+    if result is False or actual is not None:
+        raise RuntimeError('Could not %s Titan sound track.' % ('enable' if enabled else 'mute'))
 
 class SoundEffects:
     def __init__(self,resources):
@@ -138,7 +148,22 @@ class SoundEffects:
         return clips
     def remove_titles(self,timeline,uids):
         old=self._old(timeline,set(map(str,uids)))
-        if old and not timeline.DeleteClips(old,False):raise RuntimeError('Could not replace Titan sound clips.')
+        if old:self._delete_clips(timeline,old,'Could not replace Titan sound clips.')
+    @staticmethod
+    def _delete_clips(timeline,clips,error):
+        result=timeline.DeleteClips(clips,False)
+        if result is True:return
+        remaining=[c for track in range(1,int(timeline.GetTrackCount('audio'))+1)
+                   for c in values(timeline.GetItemListInTrack('audio',track))]
+        if any(clip in remaining for clip in clips):
+            raise RuntimeError(error)
+    @staticmethod
+    def _add_marker(clip,event):
+        metadata=PREFIX+json.dumps({'uid':event['uid'],'side':event['side']},separators=(',',':'))
+        result=clip.AddMarker(0,'Blue','Titan SFX','',1,metadata)
+        if result is True:return
+        if owned_uid(clip)==str(event['uid']):return
+        raise RuntimeError('Could not mark sound ownership.')
     def sync(self,project,timeline,entries,states,duration,enabled=True):
         uids={str(e['uid']) for e in entries}
         if not uids:return 0
@@ -188,11 +213,10 @@ class SoundEffects:
                 clip=result[0]
                 if int(round(float(clip.GetStart())))!=start or int(round(float(clip.GetEnd())))!=end:
                     raise RuntimeError('Resolve inserted sound outside its animation window.')
-                metadata=PREFIX+json.dumps({'uid':event['uid'],'side':event['side']},separators=(',',':'))
-                if not clip.AddMarker(0,'Blue','Titan SFX','',1,metadata):raise RuntimeError('Could not mark sound ownership.')
+                self._add_marker(clip,event)
                 clip.SetName('Titan '+event['effect']+' '+event['side'])
                 lanes[track].append((start,end))
-            if old and not timeline.DeleteClips(old,False):raise RuntimeError('Could not replace old sounds.')
+            if old:self._delete_clips(timeline,old,'Could not replace old sounds.')
         except Exception:
             if made:timeline.DeleteClips(made,False)
             for track in reversed(new_tracks):

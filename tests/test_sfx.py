@@ -16,7 +16,7 @@ class Clip:
     def GetStart(self):return self.start
     def GetEnd(self):return self.end
     def GetMarkers(self):return self.markers
-    def AddMarker(self,frame,color,name,note,duration,data):self.markers[frame]={'customData':data};return True
+    def AddMarker(self,frame,color,name,note,duration,data):self.markers[frame]={'customData':data};return None
     def SetName(self,name):self.name=name;return True
     def GetClipProperty(self,key):return self.path if key=='File Path' else '24'
 
@@ -31,7 +31,7 @@ class Timeline:
     def DeleteClips(self,clips,ripple):
         for track in self.tracks.values():
             track[:]=[c for c in track if c not in clips]
-        return True
+        return None
     def DeleteTrack(self,kind,index):self.tracks.pop(index);return True
 
 class MacTimeline(Timeline):
@@ -128,7 +128,7 @@ class Sounds(unittest.TestCase):
         self.assertEqual(len(timeline.tracks[2]),1)
         flags={t:True for t in timeline.tracks}
         timeline.GetIsTrackEnabled=lambda kind,t:flags[t]
-        timeline.SetTrackEnable=lambda kind,t,value:flags.__setitem__(t,value) or True
+        timeline.SetTrackEnable=lambda kind,t,value:flags.__setitem__(t,value)
         sfx.export_without_sfx(timeline,lambda:None)
         self.assertTrue(all(flags.values()))
     def test_transcription_restores_track_states_on_error(self):
@@ -136,7 +136,7 @@ class Sounds(unittest.TestCase):
         service.sync(project,timeline,[entry],lambda e:{'in':{'slide'}},20)
         flags={t:True for t in timeline.tracks}
         timeline.GetIsTrackEnabled=lambda kind,t:flags[t]
-        def enable(kind,t,value):flags[t]=value;return True
+        def enable(kind,t,value):flags[t]=value
         timeline.SetTrackEnable=enable
         def export():
             self.assertTrue(flags[1]);self.assertFalse(flags[2])
