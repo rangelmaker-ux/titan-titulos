@@ -1,5 +1,6 @@
 """Run against the actual FilmCraft CLI on an isolated temporary project."""
 import json
+import random
 import os
 from pathlib import Path
 import subprocess
@@ -114,6 +115,15 @@ class Native(unittest.TestCase):
             for lane in self.bridge.execute('sequence.inspect')['video']:
                 clips=sorted(lane['items'],key=lambda c:c['start'])
                 for first,second in zip(clips,clips[1:]):self.assertLessEqual(first['end'],second['start'])
+
+    def test_occupied_v4_regression(self):
+        # This exact seed reproduces "V4 is not free here" on 1.0.0.
+        self.bridge.execute('file.newSequence',name='V4 regression',fps=24,video=3,audio=3)
+        rng=random.Random(15);cursor=.013;blocks=[]
+        for i in range(70):
+            end=cursor+rng.uniform(.2,1.3)
+            blocks.append({'start':cursor,'end':end,'text':'teste de limites'});cursor=end
+        self.assertEqual(self.titan.generate(blocks,mode='common',gain=0)['titles'],70)
 
 class Planning(unittest.TestCase):
     def test_srt_preserves_text(self):
