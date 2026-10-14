@@ -86,6 +86,7 @@ Whoosh na entrada; saída mais baixa; glitch no flicker. Usa faixas de áudio pr
 Efeitos sonoros ativados.|Sound effects enabled.|Efectos de sonido activados.
 Efeitos sonoros desativados. Sons existentes permanecem até reaplicar a animação.|Sound effects disabled. Existing sounds remain until animation is reapplied.|Efectos desactivados. Los sonidos existentes permanecen hasta volver a aplicar la animación.
 Não foi possível sincronizar os efeitos sonoros. Confira as faixas de áudio.|Could not sync sound effects. Check the audio tracks.|No se pudieron sincronizar los efectos. Revisa las pistas de audio.
+Falha nos efeitos sonoros|Sound effects failed|Fallo en los efectos de sonido
 Os sons não puderam ser gerados. Os títulos foram preservados.|Sounds could not be generated. Your titles were preserved.|No se pudieron generar los sonidos. Los títulos se conservaron.
 Sem direção|No direction|Sin dirección
 Limpar animação|Clear animation|Borrar animación

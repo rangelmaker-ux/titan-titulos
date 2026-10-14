@@ -3985,6 +3985,8 @@ class App(object):
             self._sfx.sync(project, timeline, entries, self.anim.state, self.anim.dur, self.sfx_enabled)
         except Exception:
             _tv_diag.falha("Titan.sfx.sync")
+            self.items["status"].Text = "Falha nos efeitos sonoros"
+            self.items["status"].ToolTip = "Não foi possível sincronizar os efeitos sonoros. Confira as faixas de áudio."
             self._gstatus("Não foi possível sincronizar os efeitos sonoros. Confira as faixas de áudio.")
 
     def on_abrir_logs(self):

@@ -168,8 +168,9 @@ class SoundEffects:
                 source_frames=max(1,int(round(event['frames']*source_fps/fps)))
                 result=values(pool.AppendToTimeline([{'mediaPoolItem':media,'mediaType':2,
                     'startFrame':0,'endFrame':source_frames-1,'recordFrame':start,'trackIndex':track}]))
+                made.extend(result)
                 if len(result)!=1:raise RuntimeError('Could not insert sound effect.')
-                clip=result[0];made.append(clip)
+                clip=result[0]
                 if int(clip.GetStart())!=start or int(clip.GetEnd())!=end:
                     raise RuntimeError('Resolve inserted sound outside its animation window.')
                 metadata=PREFIX+json.dumps({'uid':event['uid'],'side':event['side']},separators=(',',':'))
