@@ -9,6 +9,8 @@ import tempfile
 import wave
 
 PREFIX='TitanSFX:'
+CHOICES=('auto','whoosh','bounce','glitch','shake','airy','none')
+LABELS=('Automático','Whoosh — Slide','Impacto — Bounce','Glitch — Flicker','Cliques — Shake','Ar — Blur','Sem som')
 EFFECTS={'flicker':'glitch','shake':'shake','bounce':'bounce','slide':'whoosh','blur':'airy'}
 
 def values(collection):
@@ -30,7 +32,9 @@ def plan_events(entries,states,duration):
         # Same bounded duration as Animator.render, including its end keyframe.
         span=min(length,max(2,min(int(duration),max(2,length//2)))+1)
         for side in ('in','out'):
-            effect=effect_for(state.get(side,set()))
+            choice=state.get('sfx_'+side,'auto')
+            effect=(effect_for(state.get(side,set())) if choice=='auto' else
+                    choice if choice in EFFECTS.values() and state.get(side,set()) else None)
             if effect:
                 events.append({'uid':str(entry['uid']),'side':side,'effect':effect,
                     'start':start if side=='in' else end-span,'frames':span,

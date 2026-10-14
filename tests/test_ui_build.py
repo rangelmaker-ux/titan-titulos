@@ -52,7 +52,7 @@ class Build(unittest.TestCase):
                 locale.configure(language);raw=UI()
                 ns={'os':os,'sys':sys,'math':math,'random':random,'ui':locale.UIProxy(raw),'disp':Dispatcher(raw),
                     'fusion':SimpleNamespace(GetData=lambda key:None,SetData=lambda *args:None),
-                    'UI_LANGUAGE':language,'_locale':locale,'tr':locale.translate,
+                    'UI_LANGUAGE':language,'_locale':locale,'tr':locale.translate,'_sound_module':SimpleNamespace(LABELS=('Automatic','Whoosh','Bounce','Glitch','Shake','Blur','No sound')),
                     '_tv_diag':SimpleNamespace(falha=lambda *args,**kw:None,evento=lambda *args,**kw:None,operacao=lambda *args,**kw:lambda fn:fn),
                     'ICON_URL':str(ROOT/'src/icons'),'SCRIPT_DIR':str(ROOT/'src')}
                 # Safe static globals only; functions/classes are compiled but not
@@ -74,7 +74,7 @@ class Build(unittest.TestCase):
                 instance.entries=[];instance.gen_layouts=['badge'];instance.gen_auto=True
                 instance.build()
                 self.assertEqual(raw.widgets['tab_0'].Text.strip(),caption)
-                for name in ('pos_all','ui_language','about','gsfx','asfx'):
+                for name in ('pos_all','ui_language','about','gsfx','asfx','in_sound','out_sound'):
                     self.assertIn(name,raw.widgets)
                 self.assertEqual(raw.widgets['ui_language'].CurrentIndex,locale.LANGUAGES.index(language))
                 self.assertTrue(raw.widgets['gsfx'].Checked)

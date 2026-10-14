@@ -61,6 +61,17 @@ class Sounds(unittest.TestCase):
         events=sfx.plan_events([entry],lambda e:{'in':{'slide','flicker'},'out':{'blur'}},20)
         self.assertEqual([(e['start'],e['frames'],e['effect']) for e in events],[(100,21,'glitch'),(139,21,'airy')])
         self.assertEqual(events[1]['gain'],.5)
+    def test_manual_override_and_silence(self):
+        entry={'uid':'title','item':Clip(100,160)}
+        events=sfx.plan_events([entry],lambda e:{'in':{'slide'},'out':{'blur'},'sfx_in':'glitch','sfx_out':'none'},20)
+        self.assertEqual([(e['start'],e['effect']) for e in events],[(100,'glitch')])
+        self.assertEqual(sfx.plan_events([entry],lambda e:{'in':set(),'sfx_in':'whoosh'},20),[])
+    def test_five_sounds_at_animation_start(self):
+        self.assertEqual(set(sfx.EFFECTS.values()),{'whoosh','bounce','glitch','shake','airy'})
+        for animation,effect in sfx.EFFECTS.items():
+            entry={'uid':animation,'item':Clip(86400,86490)}
+            events=sfx.plan_events([entry],lambda e:{'in':{animation},'out':{animation}},12)
+            self.assertEqual([(e['start'],e['effect']) for e in events],[(86400,effect),(86477,effect)])
     def test_audio_exact_length_and_quieter_exit(self):
         paths=[]
         for gain in (1,.5):

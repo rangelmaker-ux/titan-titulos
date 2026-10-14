@@ -6,6 +6,12 @@ LANGUAGE_NAMES=('Português (Brasil)','English','Español')
 LANG='pt-BR'
 # Portuguese source | English | Spanish
 ROWS='''
+Efeito sonoro|Sound effect|Efecto sonoro
+Automático|Automatic|Automático
+Sem som|No sound|Sin sonido
+Impacto — Bounce|Impact — Bounce|Impacto — Bounce
+Cliques — Shake|Clicks — Shake|Clics — Shake
+Ar — Blur|Air — Blur|Aire — Blur
 LEGENDAS|CAPTIONS|SUBTÍTULOS
 TÍTULOS|TITLES|TÍTULOS
 ANIMAÇÕES|ANIMATIONS|ANIMACIONES
