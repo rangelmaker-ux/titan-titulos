@@ -5123,11 +5123,14 @@ class App(object):
             
             
             try:
-                family, style, offsets = str(tool.GetData("TV_preview_anchor")).split("\n")
-                if family == str(tool.GetInput("Font")) and style == str(tool.GetInput("Style")):
-                    ox, oy = (float(v) for v in offsets.split(","))
-                    cx += ox * size
-                    cy += oy * size
+                anchor = tool.GetData("TV_preview_anchor")
+                partes = str(anchor).split("\n") if anchor else []
+                if len(partes) == 3:
+                    family, style, offsets = partes
+                    if family == str(tool.GetInput("Font")) and style == str(tool.GetInput("Style")):
+                        ox, oy = (float(v) for v in offsets.split(","))
+                        cx += ox * size
+                        cy += oy * size
             except (AttributeError, TypeError, ValueError):
                 _tv_diag.falha('Titulos Virais.update_preview')
                 pass
