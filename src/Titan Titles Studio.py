@@ -3178,29 +3178,44 @@ class App(object):
 
         def anim_side(side, title):
             p = side
+            dica_dir = {
+                "up": "Entra vindo de baixo, subindo até a posição" if side == "in"
+                      else "Sai subindo e desaparecendo",
+                "down": "Entra vindo de cima, descendo até a posição" if side == "in"
+                        else "Sai descendo e desaparecendo",
+                "left": "Entra vindo da direita, deslizando pra esquerda" if side == "in"
+                        else "Sai deslizando pra esquerda",
+                "right": "Entra vindo da esquerda, deslizando pra direita" if side == "in"
+                         else "Sai deslizando pra direita",
+            }
             return ui.VGroup({"Spacing": 4, "MinimumSize": [212, 190],
                               "MaximumSize": [225, 230]}, [
                 ui.Label({"Text": SECT_HTML % title, "Alignment": {"AlignHCenter": True},
                           "StyleSheet": "background:transparent;"}),
                 ui.HGroup({"Spacing": 4}, [
-                    ui.Button({"ID": p + "_slide", "Text": "Slide", "Checkable": True}),
-                    ui.Button({"ID": p + "_bounce", "Text": "Bounce", "Checkable": True}),
+                    ui.Button({"ID": p + "_slide", "Text": "Slide", "Checkable": True,
+                               "ToolTip": "Deslize: entra/sai deslizando na direção da seta ao lado. Clique pra ver no PRÉVIA."}),
+                    ui.Button({"ID": p + "_bounce", "Text": "Bounce", "Checkable": True,
+                               "ToolTip": "Quicada: muda de tamanho com uma leve quicada elástica. Clique pra ver no PRÉVIA."}),
                 ]),
                 ui.VGroup({"Spacing": 2}, [
-                    ui.HGroup({}, [ui.HGap(0, 1), ui.Button({"ID": p + "_up", "Text": "▲", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24]}), ui.HGap(0, 1)]),
+                    ui.HGroup({}, [ui.HGap(0, 1), ui.Button({"ID": p + "_up", "Text": "▲", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24], "ToolTip": dica_dir["up"]}), ui.HGap(0, 1)]),
                     ui.HGroup({"Spacing": 2}, [
                         ui.HGap(0, 1),
-                        ui.Button({"ID": p + "_left", "Text": "◀", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24]}),
+                        ui.Button({"ID": p + "_left", "Text": "◀", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24], "ToolTip": dica_dir["left"]}),
                         ui.Button({"ID": p + "_none", "Text": "•", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24], "ToolTip": "Sem direção"}),
-                        ui.Button({"ID": p + "_right", "Text": "▶", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24]}),
+                        ui.Button({"ID": p + "_right", "Text": "▶", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24], "ToolTip": dica_dir["right"]}),
                         ui.HGap(0, 1),
                     ]),
-                    ui.HGroup({}, [ui.HGap(0, 1), ui.Button({"ID": p + "_down", "Text": "▼", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24]}), ui.HGap(0, 1)]),
+                    ui.HGroup({}, [ui.HGap(0, 1), ui.Button({"ID": p + "_down", "Text": "▼", "Checkable": True, "MinimumSize": [30, 24], "MaximumSize": [30, 24], "ToolTip": dica_dir["down"]}), ui.HGap(0, 1)]),
                 ]),
                 ui.HGroup({"Spacing": 4}, [
-                    ui.Button({"ID": p + "_flicker", "Text": "Flicker", "Checkable": True}),
-                    ui.Button({"ID": p + "_shake", "Text": "Shake", "Checkable": True}),
-                    ui.Button({"ID": p + "_blur", "Text": "Blur", "Checkable": True}),
+                    ui.Button({"ID": p + "_flicker", "Text": "Flicker", "Checkable": True,
+                               "ToolTip": "Pisca rapidamente em vez de um fade suave. Clique pra ver no PRÉVIA."}),
+                    ui.Button({"ID": p + "_shake", "Text": "Shake", "Checkable": True,
+                               "ToolTip": "Treme levemente enquanto entra/sai. Clique pra ver no PRÉVIA."}),
+                    ui.Button({"ID": p + "_blur", "Text": "Blur", "Checkable": True,
+                               "ToolTip": "Desfoca e depois fica nítido (ou o contrário na saída). Clique pra ver no PRÉVIA."}),
                 ]),
                 ui.Label({"Text": "Efeito sonoro"}),
                 ui.ComboBox({"ID": p + "_sound", "MinimumSize": [190, 26]}),
@@ -3721,6 +3736,8 @@ class App(object):
                     ui.Label({"Text": SECT_HTML % "PRÉVIA",
                               "StyleSheet": "background:transparent;",
                               "MinimumSize": [60, 15], "MaximumSize": [120, 17]}),
+                    ui.Label({"Text": "Clique num tipo ou seta pra ver aqui",
+                              "StyleSheet": SUB, "MaximumSize": [self.prev_w, 14]}),
                     ui.Label({"ID": "preview", "Text": "",
                               "Alignment": {"AlignHCenter": True, "AlignTop": True},
                               "WordWrap": True,
@@ -3962,6 +3979,7 @@ class App(object):
         self._syncing = False
         self._on(WIN_ID, "Close", self.on_close)
         self._on(WIN_ID, "TitanUpdate", lambda ev: self._poll_update())
+        self._on(WIN_ID, "TitanAnimPreview", lambda ev: self._on_anim_preview_tick())
         self._on("caption_mode","CurrentIndexChanged",lambda ev:self.on_caption_mode())
         self._on("gcommon_size","ValueChanged",lambda ev:self.on_common_size())
         self._on("mark_primary","Clicked",self._mk(self.on_mark_caption_role,'highlight'))
@@ -5121,10 +5139,12 @@ class App(object):
                 label.Hide()
         for i, row in enumerate(rows):
             text, family, style = row["text"], row["font"][0], row["font"][1]
-            
-            
+
+
             pixels = row["size"] * width * 0.7
-            color = "rgb(%d,%d,%d)" % tuple(int(round(x * 255)) for x in row["color"])
+            rgb = tuple(int(round(x * 255)) for x in row["color"])
+            alpha = max(0.0, min(1.0, float(row.get("alpha", 1.0))))
+            color = ("rgb(%d,%d,%d)" % rgb) if alpha >= 0.999 else ("rgba(%d,%d,%d,%.3f)" % (rgb + (alpha,)))
             tracking = float(row.get("tracking", 1.0))
             natural, line_height = self._preview_metric(canvas, text, family, style, pixels)
             delta = (tracking - 1.0) * natural / max(1, len(text) - 1)
@@ -5190,6 +5210,122 @@ class App(object):
                          "x": cx, "y": cy, "color": tuple(channel(c) for c in ("Red1", "Green1", "Blue1")),
                          "tracking": float(tool.GetInput("CharacterSpacing") or 1.0)})
         self._draw_preview("preview", rows, *self._preview_frame("preview"))
+
+
+    def _anim_preview_offset(self, side, t, dirn, flags):
+        """Reproduz, só para a caixa PRÉVIA (sem tocar no clipe real), a mesma
+        matemática que Animator.render() usa pros keyframes de verdade —
+        ease_out/ease_in, BOUNCE_IN/OUT, FLICKER_PAT, DIRS — como função
+        contínua de t (0..1) em vez de frame a frame."""
+        distance = (self.items["dist"].Value if self.items.get("dist") else 15) / 100.0
+        dx = dy = 0.0
+        scale = 1.0
+        alpha = 1.0
+        if "slide" in flags:
+            ddx, ddy = DIRS.get(dirn, (0, 0))
+            k = (1 - ease_out(t)) if side == "in" else ease_in(t)
+            sinal = -1.0 if side == "in" else 1.0
+            dx += sinal * ddx * distance * k
+            dy += sinal * ddy * distance * k
+        if "shake" in flags:
+            k = (1 - t) if side == "in" else t
+            a = distance * 0.25 * k
+            dx += a * math.sin(t * 9.0)
+            dy += a * math.cos(t * 7.0)
+        if "bounce" in flags:
+            scale *= piecewise(BOUNCE_IN if side == "in" else BOUNCE_OUT, t)
+        if "flicker" in flags:
+            idx = int((t if side == "in" else 1 - t) * (len(FLICKER_PAT) - 1))
+            alpha *= float(FLICKER_PAT[max(0, min(len(FLICKER_PAT) - 1, idx))])
+        else:
+            alpha *= ease_out(t) if side == "in" else (1.0 - ease_in(t))
+        if "blur" in flags:
+
+            blur_k = (1 - ease_out(t)) if side == "in" else ease_in(t)
+            alpha *= max(0.15, 1.0 - blur_k * 0.75)
+        return dx, dy, scale, alpha
+
+    def _anim_preview_tick(self, side, t):
+        if self.items.get("preview") is None:
+            return
+        sel_uids = {e["uid"] for e in self.selected()} or {e["uid"] for e in self.entries}
+        dirn = "none"
+        for d in ("left", "right", "up", "down", "none"):
+            item = self.items.get(side + "_" + d)
+            if item and item.Checked:
+                dirn = d
+                break
+        flags = set()
+        for a in ("slide", "bounce", "flicker", "shake", "blur"):
+            item = self.items.get(side + "_" + a)
+            if item and item.Checked:
+                flags.add(a)
+        rows = []
+        for entry in self.entries:
+            tool = entry["tool"]
+            lo, hi = visible_range(entry)
+            frame = (lo + hi) // 2
+            size = float(get_at(tool, "Size", frame) or 0.08)
+            cx, cy = to_xy(get_at(tool, "Center", frame))
+            def channel(name):
+                value = tool.GetInput(name)
+                return float(value) if value is not None else 1.0
+            row = {"text": entry["text"], "font": (str(tool.GetInput("Font") or "Arial"),
+                   str(tool.GetInput("Style") or "Regular")), "size": size,
+                   "x": cx, "y": cy, "color": tuple(channel(c) for c in ("Red1", "Green1", "Blue1")),
+                   "tracking": float(tool.GetInput("CharacterSpacing") or 1.0)}
+            if entry["uid"] in sel_uids and flags:
+                dx, dy, scale, alpha = self._anim_preview_offset(side, t, dirn, flags)
+                row["x"] += dx
+                row["y"] += dy
+                row["size"] *= scale
+                row["alpha"] = alpha
+            rows.append(row)
+        self._draw_preview("preview", rows, *self._preview_frame("preview"))
+
+    def _on_anim_preview_tick(self):
+        if not getattr(self, "_anim_prev_t0", None):
+            return
+        import time as _time
+        side = getattr(self, "_anim_prev_side", "in")
+        dur = getattr(self, "_anim_prev_dur", 0.8)
+        t = max(0.0, min(1.0, (_time.time() - self._anim_prev_t0) / dur))
+        self._try(lambda: self._anim_preview_tick(side, t))
+
+    def _anim_preview_play(self, side):
+        """Ao clicar num tipo de animação ou seta de direção, toca um loop
+        curto na caixa PRÉVIA com a fonte/posição/cor já configuradas —
+        sem alterar o clipe real na timeline."""
+        import threading
+        import time as _time
+        if not self.selected():
+            return
+        self._anim_prev_side = side
+        self._anim_prev_t0 = _time.time()
+        self._anim_prev_dur = 0.8
+        self._anim_prev_running = True
+        if getattr(self, "_anim_prev_thread_vivo", False):
+            return
+        self._anim_prev_thread_vivo = True
+        def worker():
+            try:
+                while True:
+                    _time.sleep(0.03)
+                    if getattr(self, "_closing", False):
+                        return
+                    elapsed = _time.time() - self._anim_prev_t0
+                    if elapsed >= self._anim_prev_dur:
+                        self._anim_prev_running = False
+                    try:
+                        ui.QueueEvent(self.win, "TitanAnimPreview", {})
+                    except Exception as erro:
+                        _tv_diag.falha('Titulos Virais.anim_preview', erro)
+                        return
+                    if not self._anim_prev_running:
+                        return
+            finally:
+                self._anim_prev_thread_vivo = False
+        threading.Thread(target=worker, daemon=True).start()
 
     def selected(self):
         """Entradas selecionadas na lista; nenhuma selecionada = todas."""
@@ -5783,9 +5919,10 @@ class App(object):
             self._anim_salvar(e, st)
             self._try(lambda e=e: self.anim.render(e))
         self._sync_sounds(sel)
+        self._try(lambda: self._anim_preview_play(side))
 
     def on_dir(self, side, d):
-        self.refresh()   
+        self.refresh()
         for e in self.selected():
             st = self.anim.state(e)
             st["dir_" + side] = d
@@ -5795,6 +5932,7 @@ class App(object):
         for dd in ("left", "right", "up", "down", "none"):
             self.items[side + "_" + dd].Checked = (dd == d)
         self._sync_sounds(self.selected())
+        self._try(lambda: self._anim_preview_play(side))
 
     def on_flag(self, flag):
         self.refresh()   
