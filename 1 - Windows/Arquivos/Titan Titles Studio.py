@@ -2065,7 +2065,10 @@ TEMPLATE_NAME = "Basic Template"
 GEN_GAP_MS = 600        
 GEN_BLOCK_CHARS = 32    
 LINHA_CHARS_REF = 14    
-GEN_PAD_MS = 150        
+GEN_PAD_MS = 700        # tempo que uma legenda permanece na tela após a fala
+                        # terminar, antes do próximo bloco ou fim do intervalo
+                        # (era 150/300ms — tempo insuficiente para leitura,
+                        # sobretudo em blocos curtos/palavra de destaque)
 GEN_MAX_PALAVRAS = 6    
 
 
@@ -6330,7 +6333,7 @@ class App(object):
             tl_f0 = max(intervalo[0], ms2f(blk[0]["a"]))
             f1 = (ms2f(blocks[bi + 1][0]["a"]) if bi + 1 < len(blocks)
                   else ms2f(blk[-1]["b"] + GEN_PAD_MS))
-            f1 = min(intervalo[1], f1, ms2f(blk[-1]["b"] + 300))
+            f1 = min(intervalo[1], f1, ms2f(blk[-1]["b"] + GEN_PAD_MS))
             if f1 <= tl_f0:
                 continue
             dur = f1 - tl_f0             
