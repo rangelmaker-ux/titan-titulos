@@ -3445,9 +3445,22 @@ class App(object):
                                     "MinimumSize": [240, 26], "MaximumSize": [258, 28]})
             return ui.HGroup({"Spacing": 8}, [cel(t) for t in (a, b, c) if t is not None] + [ui.HGap(0, 1)])
 
-        page_gerar = ui.VGroup({"Spacing": 4, "Margin": 0}, [
-            
-            
+        GSUB_CSS = (
+            "QPushButton{background-color:#15151a;border:1px solid #2c2c33;"
+            "border-radius:7px;padding:6px 16px;font-size:11px;font-weight:bold;"
+            "letter-spacing:0.6px;color:#8b949e;}"
+            "QPushButton:hover{color:#f0f6fc;border-color:%s;}"
+            "QPushButton:checked{background-color:%s;color:#ffffff;border-color:%s;}"
+            % (ACCENT, ACCENT, ACCENT))
+
+        def gsub_btn(i, label):
+            return ui.Button({"ID": "gsub_%d" % i, "Text": label, "Checkable": True,
+                               "MinimumSize": [170, 28], "MaximumSize": [250, 30],
+                               "StyleSheet": GSUB_CSS})
+
+        page_gerar_a = ui.VGroup({"Spacing": 4, "Margin": 0}, [
+
+
             qsec("TRANSCRIÇÃO"),
             ui.VGap(2),
             ui.HGroup({"Spacing": 8, "MaximumSize": [744, 16]}, [
@@ -3458,10 +3471,10 @@ class App(object):
                 ui.HGap(14),
             ]),
             ui.HGroup({"Spacing": 8, "MaximumSize": [744, 34]}, [
-                
-                
-                
-                
+
+
+
+
                 ui.ComboBox({"ID": "glang", "MinimumSize": [234, 32], "MaximumSize": [234, 34]}),
                 ui.ComboBox({"ID": "gmodel", "MinimumSize": [234, 32], "MaximumSize": [234, 34]}),
                 ui.Button({"ID": "generate", "Text": "GERAR LEGENDAS",
@@ -3475,8 +3488,10 @@ class App(object):
                       "StyleSheet": "QLabel{background-color:#26262b;border-radius:5px;}"}),
             ui.Label({"ID": "gstatus", "Text": "", "Alignment": {"AlignHCenter": True},
                       "MinimumSize": [200, 14], "MaximumSize": [744, 16], "StyleSheet": SUB}),
-            ui.VGap(10),
-            
+            ui.VGap(0, 20),
+        ])
+
+        page_gerar_b = ui.VGroup({"Spacing": 4, "Margin": 0}, [
             ui.HGroup({"Spacing": 0, "Weight": 0, "MaximumSize": [744, 270]}, [
                 ui.VGroup({"Spacing": 4, "Weight": 0, "MinimumSize": [400, 240],
                            "MaximumSize": [400, 262]}, [
@@ -3571,6 +3586,18 @@ class App(object):
                  ("gcapsA", "Caixa alta apoio", "Linhas de apoio em CAIXA ALTA"),
                  ("gsfx", "Efeitos sonoros", "Um som curto na entrada do destaque, sem áudio nas palavras de apoio ou na saída.")),
             ui.VGap(0, 20),
+        ])
+
+        page_gerar = ui.VGroup({"Spacing": 4, "Margin": 0}, [
+            ui.HGroup({"Spacing": 8, "Weight": 0}, [
+                gsub_btn(0, "1 · TRANSCRIÇÃO"),
+                gsub_btn(1, "2 · ESTILO E LAYOUT"),
+                ui.HGap(0, 1),
+            ]),
+            ui.VGap(6),
+            ui.VGroup({"Weight": 1}, [
+                ui.Stack({"ID": "gstack"}, [page_gerar_a, page_gerar_b]),
+            ]),
         ])
 
         def fonte_btn(i, nome, fam, sty):
@@ -3922,7 +3949,8 @@ class App(object):
         self._popular_estilos("gest_m", _hf[0], getattr(self, "_estilo_saved_m", None) or _hf[1])
         self._popular_estilos("gest_s", _sf[0], getattr(self, "_estilo_saved_s", None) or _sf[1])
         self._try(self._gsliders)   
-        self.on_tab(0)   
+        self.on_tab(0)
+        self.on_gsub(0)
         self.refresh(force=True)
 
     
@@ -3992,6 +4020,8 @@ class App(object):
         self._on("debug", "Clicked", self._mk(self.on_debug))
         for i in range(3):
             self._on("tab_%d" % i, "Clicked", self._mk(self.on_tab, i))
+        for i in range(2):
+            self._on("gsub_%d" % i, "Clicked", self._mk(self.on_gsub, i))
         self._on("abrir_logs", "Clicked", self._mk(self.on_abrir_logs))
         self._on("sair", "Clicked", self._mk(self.on_sair))
         self._on("reparar_acesso", "Clicked", self._mk(self.on_reparar_acesso))
@@ -4398,7 +4428,16 @@ class App(object):
         self.tab_atual = i
         self.items["stack"].CurrentIndex = i
 
-    
+    def on_gsub(self, i):
+        self._syncing = True
+        try:
+            for j in range(2):
+                self.items["gsub_%d" % j].Checked = (j == i)
+        finally:
+            self._syncing = False
+        self.items["gstack"].CurrentIndex = i
+
+
     PREF = "TitulosVirais."
 
     def _load_prefs(self):
