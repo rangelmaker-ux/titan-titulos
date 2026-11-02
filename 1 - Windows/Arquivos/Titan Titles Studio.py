@@ -2707,7 +2707,8 @@ def licenca_estado():
                   "conferida_em": _hoje()})
         if not licenca_gravar(d):
             return {"ok": False, "motivo": "permissao", "erro": _ERRO_PERMISSAO, "dados": d}
-        return {"ok": True, "motivo": "renovada", "dados": d}
+        return {"ok": True, "motivo": "renovada", "dados": d,
+                "perfil_pendente": bool(resp.get("perfil_pendente"))}
     if teve_net:
         licenca_sair()
         return {"ok": False, "motivo": "recusada",
@@ -2719,16 +2720,37 @@ def licenca_estado():
             "erro": "Não consegui confirmar a chave. Conecte à internet uma vez."}
 
 
-def chave_ativar(chave):
+def _perfil_valido(nome, email):
+    import re
+    return len((nome or "").strip()) >= 2 and bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", (email or "").strip()))
+
+
+def perfil_salvar(nome, email):
+    """Nome e e-mail de quem já tinha a chave ativa (para o suporte). (ok, mensagem)"""
+    if not _perfil_valido(nome, email):
+        return False, "Digite o seu nome e um e-mail válido."
+    d = licenca_ler()
+    ok, resp, _n = licenca_post("/api/perfil", {
+        "chave": d.get("chave", ""), "produto": "titulos", "dispositivo": d.get("maquina", ""),
+        "nome": nome.strip(), "email": email.strip()}, timeout=15)
+    if ok and resp.get("ok"):
+        return True, "Cadastro salvo. Obrigado!"
+    return False, resp.get("erro", "Não consegui salvar.")
+
+
+def chave_ativar(chave, nome="", email=""):
     """Ativa a chave Titan neste computador. (ok, mensagem)"""
     chave = (chave or "").strip().upper()
     if not chave:
         return False, "Digite a sua chave."
+    if not _perfil_valido(nome, email):
+        return False, "Digite o seu nome e um e-mail válido."
     if not _verificar_acesso(_licenca_arquivo()):
         return False, _ERRO_PERMISSAO
     maq = maquina_id()
     ok, resp, _n = licenca_post("/api/ativar", {
-        "chave": chave, "produto": "titulos", "dispositivo": maq}, timeout=15)
+        "chave": chave, "produto": "titulos", "dispositivo": maq,
+        "nome": nome.strip(), "email": email.strip()}, timeout=15)
     if ok and resp.get("ok"):
         if not licenca_gravar({"chave": chave, "maquina": maq, "apelido": apelido_maquina(),
                                "expira": str(resp.get("valida_ate", ""))[:10],
@@ -2871,13 +2893,13 @@ class Login(object):
 
                 ui.Label({"ID": "lg_rot_codigo", "Text": "CÓDIGO QUE CHEGOU NO E-MAIL",
                           "StyleSheet": ROT, "MaximumSize": [400, 14]}),
-                ui.LineEdit({"ID": "lg_codigo", "PlaceholderText": "000000",
+                ui.LineEdit({"ID": "lg_codigo", "PlaceholderText": "Nome e sobrenome",
                              "MinimumSize": [200, 32], "MaximumSize": [400, 34]}),
 
                 ui.Label({"ID": "lg_rot_senha", "Text": "SENHA", "StyleSheet": ROT,
                           "MaximumSize": [400, 14]}),
-                ui.LineEdit({"ID": "lg_senha", "EchoMode": "Password",
-                             "PlaceholderText": "sua senha",
+                ui.LineEdit({"ID": "lg_senha",
+                             "PlaceholderText": "voce@email.com",
                              "MinimumSize": [200, 32], "MaximumSize": [400, 34]}),
 
                 ui.Button({"ID": "lg_ok", "Text": "ENTRAR", "StyleSheet": CTA_CSS,
@@ -2951,16 +2973,26 @@ class Login(object):
             log("relayout do login:", ex)
 
     def _modo(self, modo, msg=None):
-        """Tela única: digitar a chave Titan."""
+        """Tela única: chave + nome + e-mail (ou só nome + e-mail, para quem já tinha chave)."""
         self.modo = "entrar"
         i = self.itens
+        perfil = (self.estado or {}).get("motivo") == "perfil"
         try:
-            i["lg_titulo"].Text = SECT_HTML_G % "ATIVAR CHAVE"
-            i["lg_sub"].Text = "Digite a chave Titan que chegou no seu e-mail. Vale para 1 computador."
-            i["lg_ok"].Text = "ATIVAR"
-            for w in ("lg_rot_codigo", "lg_codigo", "lg_rot_senha", "lg_senha"):
-                self._vis(w, False, 14)
-            i["lg_link"].Hidden = True
+            i["lg_titulo"].Text = SECT_HTML_G % ("COMPLETE SEU CADASTRO" if perfil else "ATIVAR CHAVE")
+            i["lg_sub"].Text = ("Informe o seu nome e o e-mail da compra. O suporte encontra você rápido."
+                                if perfil else "Digite a chave Titan que chegou no seu e-mail, o seu nome e o e-mail da compra.")
+            i["lg_ok"].Text = "SALVAR" if perfil else "ATIVAR"
+            i["lg_rot_codigo"].Text = "SEU NOME"
+            i["lg_rot_senha"].Text = "E-MAIL DA COMPRA"
+            self._vis("lg_rot_email", not perfil, 14)
+            self._vis("lg_email", not perfil, 32)
+            self._vis("lg_rot_codigo", True, 14)
+            self._vis("lg_codigo", True, 32)
+            self._vis("lg_rot_senha", True, 14)
+            self._vis("lg_senha", True, 32)
+            i["lg_link"].Hidden = not perfil
+            if perfil:
+                i["lg_link"].Text = "AGORA NÃO"
             if msg is not None:
                 i["lg_msg"].Text = msg
         except Exception as ex:
@@ -3003,8 +3035,9 @@ class Login(object):
         self._relayout()
 
     def _link(self, ev):
-        self._transferencia = None
-        self._modo("esqueci" if self.modo == "entrar" else "entrar", "")
+        if (self.estado or {}).get("motivo") == "perfil":
+            self.liberado = True
+            self._sair = True
 
     def _passo(self):
         for _ in range(3):
@@ -3018,7 +3051,10 @@ class Login(object):
         i = self.itens
         i["lg_msg"].Text = "Conferindo…"
         self._passo()
-        ok, msg = chave_ativar(i["lg_email"].Text)
+        if (self.estado or {}).get("motivo") == "perfil":
+            ok, msg = perfil_salvar(i["lg_codigo"].Text, i["lg_senha"].Text)
+        else:
+            ok, msg = chave_ativar(i["lg_email"].Text, i["lg_codigo"].Text, i["lg_senha"].Text)
         i["lg_msg"].Text = msg
         if ok:
             self.liberado = True
@@ -6827,4 +6863,6 @@ if garantir_acesso():
     else:
         if _lic.get("aviso"):
             log(_lic["aviso"])
+        if _lic.get("perfil_pendente"):
+            Login({"motivo": "perfil", "dados": _lic.get("dados", {})}).run()
         run_app()
