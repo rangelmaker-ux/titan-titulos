@@ -688,8 +688,8 @@ TEXT3 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "you are capable", },
-				Font = Input { Value = "Clash Grotesk", },
-				Style = Input { Value = "Semibold", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "SemiBold", },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalLeftCenterRight = Input { Value = 1, },
 				HorizontalJustificationNew = Input { Value = 3, }
@@ -769,8 +769,8 @@ TEXT2 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "content create", },
-				Font = Input { Value = "Clash Grotesk", },
-				Style = Input { Value = "Semibold", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "SemiBold", },
 				Size = Input { Value = 0.16, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
@@ -861,8 +861,8 @@ TEXT1 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "those who master", },
-				Font = Input { Value = "Clash Grotesk", },
-				Style = Input { Value = "Semibold", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "SemiBold", },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalLeftCenterRight = Input { Value = -1, },
 				HorizontalJustificationNew = Input { Value = 3, }

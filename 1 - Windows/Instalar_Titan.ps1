@@ -25,7 +25,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
    <Button x:Name="Remove" Content="Remover Titan" Height="40" Background="#1E293B" Foreground="#E2E8F0" BorderThickness="0"/>
    <Button x:Name="Install" Grid.Column="2" Content="Instalar / atualizar" Height="40" Background="#38BDF8" Foreground="#0B0F17" FontWeight="Bold" BorderThickness="0"/>
   </Grid>
-  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.6.0" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
+  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.6.1" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
  </Grid>
 </Window>
 '@
@@ -89,7 +89,7 @@ function Move-LegacyTitan([string]$backup) {
 $window.FindName('Install').Add_Click({
     $backup = $null
     try {
-        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','caption-bin.drb','THIRD_PARTY_NOTICES.md','icons','sfx','modelos')) {
+        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','caption-bin.drb','THIRD_PARTY_NOTICES.md','icons','sfx','modelos','fontes')) {
             if (-not (Test-Path -LiteralPath (Join-Path $payload $part))) { throw 'Pacote incompleto. Extraia o ZIP inteiro antes de instalar.' }
         }
         $backup = Backup-Titan
@@ -109,6 +109,15 @@ $window.FindName('Install').Add_Click({
         New-Item -ItemType Directory -Path $templates -Force | Out-Null
         foreach ($aspect in @('16x9','9x16')) { Copy-Item -LiteralPath (Join-Path $payload "modelos\$aspect") -Destination (Join-Path $templates $aspect) -Recurse -Force }
         Copy-Item -LiteralPath (Join-Path $payload 'modelos\manifest.json') -Destination (Join-Path $resources 'modelos.json') -Force
+        $fontDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
+        New-Item -ItemType Directory -Path $fontDir -Force | Out-Null
+        foreach ($font in Get-ChildItem -LiteralPath (Join-Path $payload 'fontes') -Filter *.ttf) {
+            $installed = Join-Path $fontDir $font.Name
+            if (-not (Test-Path -LiteralPath $installed)) {
+                Copy-Item -LiteralPath $font.FullName -Destination $installed
+                New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts' -Name ($font.BaseName + ' (TrueType)') -Value $installed -PropertyType String -Force | Out-Null
+            }
+        }
         Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination (Join-Path $target 'Titan Titulos.py') -Force
         Move-LegacyTitan $backup
         $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Titulos. Os modelos ficam em Effects > Titles > Titan Titulos (reabra o Resolve).'

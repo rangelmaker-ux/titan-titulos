@@ -3,7 +3,7 @@ set -euo pipefail
 DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 TARGET="$HOME/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
 STORE="$HOME/Library/Containers/com.blackmagic-design.DaVinciResolveApp/Data/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Edit"
-printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.6.0\n  TITÂNIO & AZUL ELÉTRICO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
+printf '\033[38;2;56;189;248m\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  TITAN TITLES STUDIO  •  v3.6.1\n  TITÂNIO & AZUL ELÉTRICO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m\n'
 printf '\nLayouts, tipografia e movimento para DaVinci Resolve.\nAtualizações pelo GitHub com backup automático.\n\n'
 ACTION=$(/usr/bin/osascript <<'APPLESCRIPT'
 button returned of (display dialog "Seu próximo título começa aqui.\n\nFeche o Titan antes de instalar ou remover.\nAtualizações pelo GitHub com backup automático." with title "Titan Titles Studio" buttons {"Cancelar", "Remover", "Instalar"} default button "Instalar" cancel button "Cancelar")
@@ -11,7 +11,7 @@ APPLESCRIPT
 ) || exit 0
 CLEAN=no
 if [ "$ACTION" = "Instalar" ]; then
-    for part in "Titan Titles Studio.py" "titan_update.py" "titan_locale.py" "titan_sfx.py" "caption-bin.drb" "THIRD_PARTY_NOTICES.md" "icons" "sfx" "modelos"; do
+    for part in "Titan Titles Studio.py" "titan_update.py" "titan_locale.py" "titan_sfx.py" "caption-bin.drb" "THIRD_PARTY_NOTICES.md" "icons" "sfx" "modelos" "fontes"; do
         if [ ! -e "$DIR/$part" ]; then
             /usr/bin/osascript -e 'display alert "Titan Titles Studio" message "Pacote incompleto. Extraia o ZIP inteiro antes de instalar." as critical'
             exit 1
@@ -69,6 +69,12 @@ install_target() {
             mv "$target/$name" "$backup/legacy-$name"
         fi
     done
+    if [ "$ACTION" = "Instalar" ]; then
+        mkdir -p "$HOME/Library/Fonts"
+        for font in "$DIR/fontes/"*.ttf; do
+            [ -e "$HOME/Library/Fonts/$(basename "$font")" ] || cp "$font" "$HOME/Library/Fonts/"
+        done
+    fi
     printf '✓ %s\n  Backup: %s\n' "$ACTION" "$backup"
 }
 install_target "$TARGET"

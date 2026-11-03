@@ -104,11 +104,15 @@ class Updates(unittest.TestCase):
             base = Path(folder)
             b.build(base/'dist')
             version, data = u.validate_modelos(base/'dist/Titan-Titulos-Modelos.zip')
-            self.assertEqual(len(data), 120)
+            self.assertEqual(len([n for n in data if not n.startswith('fontes/')]), 120)
+            self.assertIn('fontes/Montserrat-Bold.ttf', data)
+            self.assertIn('fontes/OFL.txt', data)
             self.assertFalse([n for n, c in data.items() if n.endswith('.setting') and (b'os.execute' in c or b'editordeconteudo' in c)])
             root = base/'Fusion/Scripts/Edit'
             root.mkdir(parents=True)
-            u.install_modelos(base/'dist/Titan-Titulos-Modelos.zip', root)
+            u.install_modelos(base/'dist/Titan-Titulos-Modelos.zip', root, base/'Fontes')
+            self.assertTrue((base/'Fontes/Montserrat-Bold.ttf').is_file())
+            self.assertFalse((base/'Fusion/Templates/Edit/Titles/Titan Titulos/fontes').exists())
             self.assertTrue((base/'Fusion/Templates/Edit/Titles/Titan Titulos/16x9/Titulo 01 16x9.setting').is_file())
             self.assertTrue((base/'Fusion/Templates/Edit/Titles/Titan Titulos/9x16/Titulo 30 9x16.png').is_file())
     def test_modelos_package_rejects_system_commands(self):

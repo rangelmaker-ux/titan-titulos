@@ -724,8 +724,8 @@ TEXT2 = TextPlus {
 				SoftnessY1 = Input { Value = 17.8, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "content create", },
-				Font = Input { Value = "Matiz", },
-				Style = Input { Value = "Regular", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "ExtraBold", },
 				Size = Input { Value = 0.0672, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

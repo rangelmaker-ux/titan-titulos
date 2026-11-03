@@ -713,7 +713,7 @@ TEXT3 = TextPlus {
 					SourceOp = "Follower1_1",
 					Source = "StyledText",
 				},
-				Font = Input { Value = "Apple Garamond", },
+				Font = Input { Value = "Cormorant Garamond", },
 				Style = Input { Value = "Italic", },
 				Size = Input { Value = 0.1297, },
 				VerticalJustificationNew = Input { Value = 3, },

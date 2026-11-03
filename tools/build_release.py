@@ -84,6 +84,8 @@ def prepare_resources(directory, main_path=None):
     modelos={}
     for path in sorted((ROOT/'src/modelos').rglob('*')):
         if path.is_file() and path.name!='manifest.json':modelos[str(path.relative_to(ROOT/'src/modelos')).replace('\\','/')]=path.read_bytes()
+    for path in sorted((ROOT/'src/fontes').iterdir()):
+        if path.is_file():modelos['fontes/'+path.name]=path.read_bytes()
     modelos_manifest={'product':'Titan Titulos Modelos','version':'v'+version,
                       'files':{n:hashlib.sha256(b).hexdigest() for n,b in modelos.items()}}
     archive(destination/'Titan-Titulos-Modelos.zip',{**modelos,'manifest.json':json.dumps(modelos_manifest,indent=2).encode()})

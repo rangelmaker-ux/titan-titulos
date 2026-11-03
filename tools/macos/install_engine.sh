@@ -9,7 +9,7 @@ VERSION="$5"
 case "$USER_HOME" in /Users/*) ;; *) echo 'Conta de usuário inválida.' >&2; exit 1;; esac
 case "$USER_UID" in ''|*[!0-9]*) exit 1;; esac
 [ "$USER_UID" -ge 501 ] || { echo 'Não instale na conta root ou em uma conta de sistema.' >&2; exit 1; }
-for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py caption-bin.drb THIRD_PARTY_NOTICES.md icons sfx modelos; do
+for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py caption-bin.drb THIRD_PARTY_NOTICES.md icons sfx modelos fontes; do
     [ -e "$PAYLOAD/$part" ] || { echo "Pacote incompleto: $part" >&2; exit 1; }
 done
 assert_path() {
@@ -124,6 +124,16 @@ done
 if [ "$(/usr/bin/id -u)" = 0 ]; then
     clean_menu '/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts' "$FIRST_BACKUP" ''
 fi
+# Fontes livres usadas pelos modelos: só para o usuário e sem sobrescrever as que já existem.
+/bin/mkdir -p "$USER_HOME/Library/Fonts"
+for font in "$PAYLOAD"/fontes/*.ttf; do
+    destination="$USER_HOME/Library/Fonts/$(/usr/bin/basename "$font")"
+    assert_path "$destination"
+    if [ ! -e "$destination" ]; then
+        /usr/bin/install -m 644 "$font" "$destination"
+        if [ "$(/usr/bin/id -u)" = 0 ]; then /usr/sbin/chown "$USER_UID:$USER_GID" "$destination"; fi
+    fi
+done
 SUCCESS=yes
 echo "Titan Titles Studio $VERSION instalado. Menu: Workspace > Scripts > Edit > Titan Titulos. Modelos: Effects > Titles > Titan Titulos"
 echo "Backup: $FIRST_BACKUP"

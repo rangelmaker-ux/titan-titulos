@@ -563,7 +563,7 @@ TEXT01 = TextPlus {
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "CREATE THE", },
 				Font = Input { Value = "Bebas Neue", },
-				Style = Input { Value = "Bold", },
+				Style = Input { Value = "Regular", },
 				Size = Input { Value = 0.0903, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
@@ -647,7 +647,7 @@ TEXT02 = TextPlus {
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "FUTURE", },
 				Font = Input { Value = "Bebas Neue", },
-				Style = Input { Value = "Bold", },
+				Style = Input { Value = "Regular", },
 				Size = Input { Value = 0.2846, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

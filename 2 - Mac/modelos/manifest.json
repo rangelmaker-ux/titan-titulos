@@ -64,8 +64,8 @@
    "aspecto": "16x9",
    "numero": 7,
    "fontes": [
-    "Apple Garamond",
-    "Arial"
+    "Arial",
+    "Cormorant Garamond"
    ],
    "miniatura": true
   },
@@ -132,7 +132,6 @@
    "aspecto": "16x9",
    "numero": 14,
    "fontes": [
-    "Matiz",
     "Montserrat"
    ],
    "miniatura": true
@@ -219,8 +218,8 @@
    "aspecto": "16x9",
    "numero": 23,
    "fontes": [
-    "Apple Garamond",
-    "Arial"
+    "Arial",
+    "Cormorant Garamond"
    ],
    "miniatura": true
   },
@@ -247,7 +246,7 @@
    "aspecto": "16x9",
    "numero": 26,
    "fontes": [
-    "Clash Grotesk"
+    "Montserrat"
    ],
    "miniatura": true
   },
@@ -256,7 +255,7 @@
    "aspecto": "16x9",
    "numero": 27,
    "fontes": [
-    "Clash Grotesk"
+    "Montserrat"
    ],
    "miniatura": true
   },
@@ -351,8 +350,8 @@
    "aspecto": "9x16",
    "numero": 7,
    "fontes": [
-    "Apple Garamond",
-    "Arial"
+    "Arial",
+    "Cormorant Garamond"
    ],
    "miniatura": true
   },
@@ -419,7 +418,6 @@
    "aspecto": "9x16",
    "numero": 14,
    "fontes": [
-    "Matiz",
     "Montserrat"
    ],
    "miniatura": true
@@ -506,8 +504,8 @@
    "aspecto": "9x16",
    "numero": 23,
    "fontes": [
-    "Apple Garamond",
-    "Arial"
+    "Arial",
+    "Cormorant Garamond"
    ],
    "miniatura": true
   },
@@ -534,7 +532,7 @@
    "aspecto": "9x16",
    "numero": 26,
    "fontes": [
-    "Clash Grotesk"
+    "Montserrat"
    ],
    "miniatura": true
   },
@@ -543,7 +541,7 @@
    "aspecto": "9x16",
    "numero": 27,
    "fontes": [
-    "Clash Grotesk"
+    "Montserrat"
    ],
    "miniatura": true
   },

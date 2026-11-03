@@ -26,6 +26,7 @@ ASSET = 'Titan-Titles-Studio-Update.zip'
 MODELOS_ASSET = 'Titan-Titulos-Modelos.zip'
 MODELOS_PASTA = 'Titan Titulos'
 MODELO_NOME = re.compile(r'(16x9|9x16)/Titulo \d{2} (?:16x9|9x16)\.(?:setting|png)')
+FONTE_NOME = re.compile(r'fontes/(?:[A-Za-z0-9-]+\.ttf|OFL\.txt)')
 MAX_BYTES = 32 * 1024 * 1024
 
 def version(value):
@@ -236,7 +237,7 @@ def validate_modelos(path):
             raise ValueError('Conteúdo do pacote de modelos inválido.')
         data = {}
         for name, digest in files.items():
-            if not MODELO_NOME.fullmatch(name):
+            if not (MODELO_NOME.fullmatch(name) or FONTE_NOME.fullmatch(name)):
                 raise ValueError('Arquivo não permitido nos modelos.')
             content = archive.read(name)
             if hashlib.sha256(content).hexdigest() != digest:
@@ -246,8 +247,37 @@ def validate_modelos(path):
             data[name] = content
         return manifest.get('version'), data
 
-def install_modelos(path, install_root):
+def instalar_fontes(data, pasta=None):
+    """Instala só para o usuário, sem sobrescrever fontes que já existam. Devolve quantas foram copiadas."""
+    novas = {n.split('/', 1)[1]: c for n, c in data.items() if n.startswith('fontes/') and n.endswith('.ttf')}
+    if not novas:
+        return 0
+    if pasta is None:
+        if sys.platform == 'win32':
+            pasta = Path(os.environ['LOCALAPPDATA']) / 'Microsoft' / 'Windows' / 'Fonts'
+        elif sys.platform == 'darwin':
+            pasta = Path.home() / 'Library' / 'Fonts'
+        else:
+            return 0
+    pasta = Path(pasta)
+    pasta.mkdir(parents=True, exist_ok=True)
+    copiadas = 0
+    for nome, conteudo in novas.items():
+        destino = pasta / nome
+        if destino.exists():
+            continue
+        destino.write_bytes(conteudo)
+        if sys.platform == 'win32' and pasta.name == 'Fonts' and 'LOCALAPPDATA' in os.environ:
+            import winreg
+            with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows NT\CurrentVersion\Fonts') as chave:
+                winreg.SetValueEx(chave, Path(nome).stem + ' (TrueType)', 0, winreg.REG_SZ, str(destino))
+        copiadas += 1
+    return copiadas
+
+def install_modelos(path, install_root, pasta_fontes=None):
     version, data = validate_modelos(path)
+    instalar_fontes(data, pasta_fontes)
+    data = {n: c for n, c in data.items() if not n.startswith('fontes/')}
     destino = modelos_dir(install_root)
     if destino.is_symlink():
         raise ValueError('Pasta de modelos inválida.')

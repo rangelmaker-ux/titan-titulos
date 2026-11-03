@@ -804,7 +804,7 @@ TEXT02 = TextPlus {
 					Source = "StyledText",
 				},
 				Font = Input { Value = "Bebas Neue", },
-				Style = Input { Value = "Bold", },
+				Style = Input { Value = "Regular", },
 				Size = Input { Value = 0.1754, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
