@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 for folder in ('1 - Windows/Arquivos','2 - Mac'):
     for name in ('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py'):
         shutil.copy2(ROOT/'src'/name,ROOT/folder/name)
-    for name in ('icons','sfx'):
+    for name in ('icons','sfx','modelos'):
         shutil.copytree(ROOT/'src'/name,ROOT/folder/name,dirs_exist_ok=True)
     shutil.copy2(ROOT/'src'/'caption-bin.drb',ROOT/folder/'caption-bin.drb')
     shutil.copy2(ROOT/'THIRD_PARTY_NOTICES.md',ROOT/folder/'THIRD_PARTY_NOTICES.md')

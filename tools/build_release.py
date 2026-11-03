@@ -70,8 +70,8 @@ def prepare_resources(directory, main_path=None):
                 destination.write_bytes(old.read_bytes())
         script=Path(main_path) if main_path else legacy_root/'Titan Titles Studio.py'
         if script.parent.resolve()==legacy_root and script.is_file():
-            canonical=legacy_root/'Titan Studio.py'
-            if canonical.exists():shutil.copy2(canonical,backup/'before-Titan Studio.py')
+            canonical=legacy_root/'Titan Titulos.py'
+            if canonical.exists():shutil.copy2(canonical,backup/'before-Titan Titulos.py')
             canonical.write_bytes(script.read_bytes())
         retire_legacy(legacy_root,backup)
     return str(target)
@@ -81,6 +81,12 @@ def prepare_resources(directory, main_path=None):
     manifest = {'product': 'Titan Titles Studio', 'version': 'v' + version,
                 'files': {n: hashlib.sha256(b).hexdigest() for n,b in update_files.items()}}
     archive(destination/'Titan-Titles-Studio-Update.zip', {**update_files, 'manifest.json': json.dumps(manifest, indent=2).encode()})
+    modelos={}
+    for path in sorted((ROOT/'src/modelos').rglob('*')):
+        if path.is_file() and path.name!='manifest.json':modelos[str(path.relative_to(ROOT/'src/modelos')).replace('\\','/')]=path.read_bytes()
+    modelos_manifest={'product':'Titan Titulos Modelos','version':'v'+version,
+                      'files':{n:hashlib.sha256(b).hexdigest() for n,b in modelos.items()}}
+    archive(destination/'Titan-Titulos-Modelos.zip',{**modelos,'manifest.json':json.dumps(modelos_manifest,indent=2).encode()})
     for platform, folder in (('Windows','1 - Windows'), ('Mac','2 - Mac')):
         entries = {str(p.relative_to(ROOT/folder)).replace('\\','/'): p.read_bytes()
                    for p in (ROOT/folder).rglob('*') if p.is_file()}

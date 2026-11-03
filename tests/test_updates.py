@@ -67,7 +67,7 @@ class Updates(unittest.TestCase):
                 self.assertEqual(events.get(timeout=5),'TitanUpdate')
                 instance._poll_update()
         instance._updater.instalar()
-        self.assertEqual((root/'Titan Studio.py').read_bytes(),(ROOT/'src/Titan Titles Studio.py').read_bytes())
+        self.assertEqual((root/'Titan Titulos.py').read_bytes(),(ROOT/'src/Titan Titles Studio.py').read_bytes())
     @unittest.skipUnless(sys.platform=='darwin','Requires macOS certificate store')
     def test_mac_system_roots_work_without_certifi(self):
         original=__import__
@@ -99,9 +99,32 @@ class Updates(unittest.TestCase):
         bundled=zlib.decompress(base64.b64decode(constants['_CAPTION_BIN_B64']))
         self.assertEqual(hashlib.sha256(bundled).hexdigest(),constants['_CAPTION_BIN_SHA256'])
         self.assertEqual(bundled,(ROOT/'src/caption-bin.drb').read_bytes())
+    def test_modelos_package_installs_only_safe_templates(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            b.build(base/'dist')
+            version, data = u.validate_modelos(base/'dist/Titan-Titulos-Modelos.zip')
+            self.assertEqual(len(data), 120)
+            self.assertFalse([n for n, c in data.items() if n.endswith('.setting') and (b'os.execute' in c or b'editordeconteudo' in c)])
+            root = base/'Fusion/Scripts/Edit'
+            root.mkdir(parents=True)
+            u.install_modelos(base/'dist/Titan-Titulos-Modelos.zip', root)
+            self.assertTrue((base/'Fusion/Templates/Edit/Titles/Titan Titulos/16x9/Titulo 01 16x9.setting').is_file())
+            self.assertTrue((base/'Fusion/Templates/Edit/Titles/Titan Titulos/9x16/Titulo 30 9x16.png').is_file())
+    def test_modelos_package_rejects_system_commands(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)/'m.zip'
+            content = b'{ os.execute("calc") }'
+            name = '16x9/Titulo 01 16x9.setting'
+            manifest = {'product': 'Titan Titulos Modelos', 'version': 'v1.0.0', 'files': {name: hashlib.sha256(content).hexdigest()}}
+            with zipfile.ZipFile(path, 'w') as z:
+                z.writestr(name, content)
+                z.writestr('manifest.json', json.dumps(manifest))
+            with self.assertRaises(ValueError):
+                u.validate_modelos(path)
     def test_install_backup_preserves_other_plugins(self):
         root=self.base/'Fusion/Scripts/Edit'; root.mkdir(parents=True)
-        (root/'Titan Studio.py').write_bytes(b'old script')
+        (root/'Titan Titulos.py').write_bytes(b'old script')
         (root/'other-plugin.py').write_bytes(b'keep')
         (root/'icons').mkdir(); (root/'icons/other.png').write_bytes(b'keep icon')
         backup=u.install_package(self.archive,self.current,root)
@@ -112,7 +135,7 @@ class Updates(unittest.TestCase):
             self.assertEqual((root.parent.parent/'TitanTitlesStudio/titan_update.py').read_bytes(),z.read('titan_update.py'))
     def test_failed_install_rolls_back(self):
         root=self.base/'Fusion/Scripts/Edit'; root.mkdir(parents=True)
-        (root/'Titan Studio.py').write_bytes(b'old script')
+        (root/'Titan Titulos.py').write_bytes(b'old script')
         (root.parent.parent/'TitanTitlesStudio').mkdir()
         (root.parent.parent/'TitanTitlesStudio/titan_update.py').write_bytes(b'old updater')
         real_replace=u.os.replace
@@ -123,7 +146,7 @@ class Updates(unittest.TestCase):
             return real_replace(*args)
         with patch.object(u.os,'replace',side_effect=fail_once):
             with self.assertRaises(OSError): u.install_package(self.archive,self.current,root)
-        self.assertEqual((root/'Titan Studio.py').read_bytes(),b'old script')
+        self.assertEqual((root/'Titan Titulos.py').read_bytes(),b'old script')
         self.assertEqual((root.parent.parent/'TitanTitlesStudio/titan_update.py').read_bytes(),b'old updater')
         self.assertFalse((root.parent.parent/'TitanTitlesStudio/icons/arrow_down.png').exists())
     def test_only_one_titan_entry_after_migration(self):
@@ -135,10 +158,10 @@ class Updates(unittest.TestCase):
         (root/'TitanTitlesStudio-backups/Titan Titles Studio Backup.py').write_bytes(b'old backup')
         backup=u.install_package(self.archive,self.current,root)
         scripts=list(root.parent.rglob('*.py'))
-        self.assertEqual([p.name for p in scripts],['Titan Studio.py'])
+        self.assertEqual([p.name for p in scripts],['Titan Titulos.py'])
         self.assertEqual((Path(backup)/'legacy-Titan Titles Studio.py').read_bytes(),b'legacy')
         u.install_package(self.archive,self.current,root)
-        self.assertEqual([p.name for p in root.parent.rglob('*.py')],['Titan Studio.py'])
+        self.assertEqual([p.name for p in root.parent.rglob('*.py')],['Titan Titulos.py'])
     def test_tampered_package_rejected(self):
         with zipfile.ZipFile(self.archive) as z: entries={n:z.read(n) for n in z.namelist()}
         entries['Titan Titles Studio.py']=b'print("tampered")'
@@ -182,7 +205,7 @@ class Updates(unittest.TestCase):
         migrated=importlib.util.module_from_spec(spec);spec.loader.exec_module(migrated)
         resources=Path(migrated.prepare_resources(legacy,root/'Titan Titles Studio.py'))
         self.assertEqual(resources,root.parent.parent/'TitanTitlesStudio')
-        self.assertEqual([p.name for p in root.parent.rglob('*.py')],['Titan Studio.py'])
+        self.assertEqual([p.name for p in root.parent.rglob('*.py')],['Titan Titulos.py'])
         self.assertEqual((resources/'titan_locale.py').read_bytes(),(ROOT/'src/titan_locale.py').read_bytes())
         self.assertEqual((resources/'sfx/glitch.wav').read_bytes(),(ROOT/'src/sfx/glitch.wav').read_bytes())
 

@@ -9,7 +9,7 @@ VERSION="$5"
 case "$USER_HOME" in /Users/*) ;; *) echo 'Conta de usuário inválida.' >&2; exit 1;; esac
 case "$USER_UID" in ''|*[!0-9]*) exit 1;; esac
 [ "$USER_UID" -ge 501 ] || { echo 'Não instale na conta root ou em uma conta de sistema.' >&2; exit 1; }
-for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py caption-bin.drb THIRD_PARTY_NOTICES.md icons sfx; do
+for part in 'Titan Titles Studio.py' titan_update.py titan_locale.py titan_sfx.py caption-bin.drb THIRD_PARTY_NOTICES.md icons sfx modelos; do
     [ -e "$PAYLOAD/$part" ] || { echo "Pacote incompleto: $part" >&2; exit 1; }
 done
 assert_path() {
@@ -77,7 +77,7 @@ clean_menu() {
 # Validate all locations before making the first change.
 for target in "${TARGETS[@]}"; do
     fusion="$(/usr/bin/dirname "$(/usr/bin/dirname "$target")")"
-    for path in "$target" "$fusion/TitanTitlesStudio" "$fusion/TitanTitlesStudio-backups" "$target/Titan Studio.py"; do assert_path "$path"; done
+    for path in "$target" "$fusion/TitanTitlesStudio" "$fusion/TitanTitlesStudio-backups" "$target/Titan Titulos.py" "$fusion/Templates/Edit/Titles/Titan Titulos"; do assert_path "$path"; done
 done
 FIRST_BACKUP=''
 for target in "${TARGETS[@]}"; do
@@ -96,16 +96,25 @@ for target in "${TARGETS[@]}"; do
     /usr/bin/install -m 644 "$PAYLOAD/caption-bin.drb" "$stage/TitanTitlesStudio/caption-bin.drb"
     /usr/bin/install -m 644 "$PAYLOAD/THIRD_PARTY_NOTICES.md" "$stage/TitanTitlesStudio/THIRD_PARTY_NOTICES.md"
     /usr/bin/ditto "$PAYLOAD/sfx" "$stage/TitanTitlesStudio/sfx"
-    /usr/bin/install -m 644 "$PAYLOAD/Titan Titles Studio.py" "$stage/Titan Studio.py"
+    /usr/bin/install -m 644 "$PAYLOAD/Titan Titles Studio.py" "$stage/Titan Titulos.py"
+    /bin/mkdir "$stage/Titan Titulos"
+    /usr/bin/ditto "$PAYLOAD/modelos/16x9" "$stage/Titan Titulos/16x9"
+    /usr/bin/ditto "$PAYLOAD/modelos/9x16" "$stage/Titan Titulos/9x16"
+    /usr/bin/install -m 644 "$PAYLOAD/modelos/manifest.json" "$stage/TitanTitlesStudio/modelos.json"
     printf '%s\n' "$VERSION" > "$stage/TitanTitlesStudio/installed-version.txt"
     if [ "$(/usr/bin/id -u)" = 0 ]; then /usr/sbin/chown -R "$USER_UID:$USER_GID" "$stage"; fi
     retire "$resources" "$backup/resources-before"
-    retire "$target/Titan Studio.py" "$backup/Titan Studio.py"
+    retire "$target/Titan Titulos.py" "$backup/Titan Titulos.py"
+    templates="$fusion/Templates/Edit/Titles/Titan Titulos"
+    /bin/mkdir -p "$fusion/Templates/Edit/Titles"
+    retire "$templates" "$backup/modelos-before"
     /bin/mv "$stage/TitanTitlesStudio" "$resources"
     CREATED+=("$resources")
-    /bin/mv "$stage/Titan Studio.py" "$target/Titan Studio.py"
-    CREATED+=("$target/Titan Studio.py")
-    clean_menu "$(/usr/bin/dirname "$target")" "$backup" "$target/Titan Studio.py"
+    /bin/mv "$stage/Titan Titulos.py" "$target/Titan Titulos.py"
+    CREATED+=("$target/Titan Titulos.py")
+    /bin/mv "$stage/Titan Titulos" "$templates"
+    CREATED+=("$templates")
+    clean_menu "$(/usr/bin/dirname "$target")" "$backup" "$target/Titan Titulos.py"
     if [ "$(/usr/bin/id -u)" = 0 ]; then
         /usr/sbin/chown "$USER_UID:$USER_GID" "$target" "$fusion" "$fusion/TitanTitlesStudio-backups"
         /usr/sbin/chown -R "$USER_UID:$USER_GID" "$backup"
@@ -116,5 +125,5 @@ if [ "$(/usr/bin/id -u)" = 0 ]; then
     clean_menu '/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts' "$FIRST_BACKUP" ''
 fi
 SUCCESS=yes
-echo "Titan Titles Studio $VERSION instalado. Menu: Workspace > Scripts > Edit > Titan Studio"
+echo "Titan Titles Studio $VERSION instalado. Menu: Workspace > Scripts > Edit > Titan Titulos. Modelos: Effects > Titles > Titan Titulos"
 echo "Backup: $FIRST_BACKUP"

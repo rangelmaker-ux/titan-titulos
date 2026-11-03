@@ -18,7 +18,7 @@ cat > "$STAGE/ui/Welcome.html" <<'HTML'
 <html><meta charset="utf-8"><style>body{font:14px -apple-system;color:#233047;padding:12px}h1{font-size:27px;color:#176d9b}strong{color:#176d9b}</style><img src="titan_word.png" width="185"><h1>Titan Titles Studio</h1><p>Layouts, tipografia e movimento para DaVinci Resolve.</p><p><strong>Titânio & Azul Elétrico · @rangelmaker_</strong></p><p>Este instalador configura o Titan para a conta conectada ao Mac, substitui versões anteriores e guarda um backup fora do menu de scripts.</p><p>Feche a janela do Titan antes de continuar. Outros plugins e títulos já criados nos projetos serão preservados.</p></html>
 HTML
 cat > "$STAGE/ui/Conclusion.html" <<'HTML'
-<html><meta charset="utf-8"><style>body{font:14px -apple-system;color:#233047;padding:12px}h1{color:#176d9b}</style><h1>Seu próximo título começa aqui.</h1><p>Reabra o DaVinci Resolve.</p><p><strong>Workspace → Scripts → Edit → Titan Studio</strong></p><p>O menu terá apenas uma entrada Titan. Recursos e backups ficam na pasta Fusion, fora de Scripts.</p><p>@rangelmaker_ · Titan Titles Studio</p></html>
+<html><meta charset="utf-8"><style>body{font:14px -apple-system;color:#233047;padding:12px}h1{color:#176d9b}</style><h1>Seu próximo título começa aqui.</h1><p>Reabra o DaVinci Resolve.</p><p><strong>Workspace → Scripts → Edit → Titan Titulos</strong></p><p>Os modelos ficam em <strong>Effects → Titles → Titan Titulos</strong>.</p><p>O menu terá apenas uma entrada Titan. Recursos e backups ficam na pasta Fusion, fora de Scripts.</p><p>@rangelmaker_ · Titan Titles Studio</p></html>
 HTML
 cat > "$STAGE/Distribution.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>

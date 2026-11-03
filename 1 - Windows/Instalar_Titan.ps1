@@ -3,6 +3,7 @@ Add-Type -AssemblyName PresentationFramework
 $target = Join-Path $env:APPDATA 'Blackmagic Design\DaVinci Resolve\Support\Fusion\Scripts\Edit'
 $storage = Split-Path -Parent (Split-Path -Parent $target)
 $resources = Join-Path $storage 'TitanTitlesStudio'
+$templates = Join-Path $storage 'Templates\Edit\Titles\Titan Titulos'
 $payload = Join-Path $PSScriptRoot 'Arquivos'
 [xml]$markup = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Titan Titles Studio" Width="600" Height="620" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Background="#0B0F17" Foreground="#E2E8F0" FontFamily="Segoe UI">
@@ -24,7 +25,7 @@ $payload = Join-Path $PSScriptRoot 'Arquivos'
    <Button x:Name="Remove" Content="Remover Titan" Height="40" Background="#1E293B" Foreground="#E2E8F0" BorderThickness="0"/>
    <Button x:Name="Install" Grid.Column="2" Content="Instalar / atualizar" Height="40" Background="#38BDF8" Foreground="#0B0F17" FontWeight="Bold" BorderThickness="0"/>
   </Grid>
-  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.5.1" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
+  <TextBlock Grid.Row="4" Text="Titan Titles Studio • v3.6.0" Foreground="#64748B" VerticalAlignment="Bottom" FontSize="11"/>
  </Grid>
 </Window>
 '@
@@ -47,22 +48,26 @@ function Backup-Titan {
     Assert-TitanPath $parent
     $backup = Join-Path $parent ([Guid]::NewGuid().ToString())
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
-    $script = Join-Path $target 'Titan Studio.py'
+    $script = Join-Path $target 'Titan Titulos.py'
     Assert-TitanPath $script
     Assert-TitanPath $resources
     if (Test-Path -LiteralPath $script) { Copy-Item -LiteralPath $script -Destination $backup }
     if (Test-Path -LiteralPath $resources) { Copy-Item -LiteralPath $resources -Destination $backup -Recurse }
+    Assert-TitanPath $templates
+    if (Test-Path -LiteralPath $templates) { Copy-Item -LiteralPath $templates -Destination (Join-Path $backup 'Modelos') -Recurse }
     return $backup
 }
 function Remove-Titan {
-    $script = Join-Path $target 'Titan Studio.py'
+    $script = Join-Path $target 'Titan Titulos.py'
     Assert-TitanPath $script
     Assert-TitanPath $resources
+    Assert-TitanPath $templates
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script }
+    if (Test-Path -LiteralPath $templates) { Remove-Item -LiteralPath $templates -Recurse -Force }
     if (Test-Path -LiteralPath $resources) { Remove-Item -LiteralPath $resources -Recurse }
 }
 function Move-LegacyTitan([string]$backup) {
-    foreach ($name in @('Titan Titles Studio.py','Titan Titulo Studio.py','Titan Titles Studio Backup.py','Titan Titulo Studio Backup.py','Titan Update.py','titan_update.py','titan_locale.py','titan_sfx.py','TitanTitlesStudio','TitanTitlesStudio-backups')) {
+    foreach ($name in @('Titan Studio.py','Titan Titles Studio.py','Titan Titulo Studio.py','Titan Titles Studio Backup.py','Titan Titulo Studio Backup.py','Titan Update.py','titan_update.py','titan_locale.py','titan_sfx.py','TitanTitlesStudio','TitanTitlesStudio-backups')) {
         $old = Join-Path $target $name
         Assert-TitanPath $old
         if (Test-Path -LiteralPath $old) {
@@ -84,7 +89,7 @@ function Move-LegacyTitan([string]$backup) {
 $window.FindName('Install').Add_Click({
     $backup = $null
     try {
-        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','caption-bin.drb','THIRD_PARTY_NOTICES.md','icons','sfx')) {
+        foreach ($part in @('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py','caption-bin.drb','THIRD_PARTY_NOTICES.md','icons','sfx','modelos')) {
             if (-not (Test-Path -LiteralPath (Join-Path $payload $part))) { throw 'Pacote incompleto. Extraia o ZIP inteiro antes de instalar.' }
         }
         $backup = Backup-Titan
@@ -99,9 +104,14 @@ $window.FindName('Install').Add_Click({
         Copy-Item -LiteralPath (Join-Path $payload 'sfx') -Destination $resources -Recurse -Force
         Copy-Item -LiteralPath (Join-Path $payload 'caption-bin.drb') -Destination $resources -Force
         Copy-Item -LiteralPath (Join-Path $payload 'THIRD_PARTY_NOTICES.md') -Destination $resources -Force
-        Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination (Join-Path $target 'Titan Studio.py') -Force
+        Assert-TitanPath $templates
+        if (Test-Path -LiteralPath $templates) { Remove-Item -LiteralPath $templates -Recurse -Force }
+        New-Item -ItemType Directory -Path $templates -Force | Out-Null
+        foreach ($aspect in @('16x9','9x16')) { Copy-Item -LiteralPath (Join-Path $payload "modelos\$aspect") -Destination (Join-Path $templates $aspect) -Recurse -Force }
+        Copy-Item -LiteralPath (Join-Path $payload 'modelos\manifest.json') -Destination (Join-Path $resources 'modelos.json') -Force
+        Copy-Item -LiteralPath (Join-Path $payload 'Titan Titles Studio.py') -Destination (Join-Path $target 'Titan Titulos.py') -Force
         Move-LegacyTitan $backup
-        $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Studio.'
+        $status.Text = 'Instalado! Abra Workspace > Scripts > Edit > Titan Titulos. Os modelos ficam em Effects > Titles > Titan Titulos (reabra o Resolve).'
     } catch {
         if ($backup) {
             try {
@@ -110,7 +120,7 @@ $window.FindName('Install').Add_Click({
                 }
                 Remove-Titan
                 if (Test-Path -LiteralPath (Join-Path $backup 'TitanTitlesStudio')) { Copy-Item -LiteralPath (Join-Path $backup 'TitanTitlesStudio') -Destination $storage -Recurse -Force }
-                if (Test-Path -LiteralPath (Join-Path $backup 'Titan Studio.py')) { Copy-Item -LiteralPath (Join-Path $backup 'Titan Studio.py') -Destination $target -Force }
+                if (Test-Path -LiteralPath (Join-Path $backup 'Titan Titulos.py')) { Copy-Item -LiteralPath (Join-Path $backup 'Titan Titulos.py') -Destination $target -Force }
             } catch { $status.Text = "Falha ao restaurar. Backup: $backup"; return }
         }
         $status.Text = 'Falha na instalação: ' + $_.Exception.Message

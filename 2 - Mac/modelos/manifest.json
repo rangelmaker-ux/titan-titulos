@@ -1,0 +1,591 @@
+{
+ "pasta": "Titan Títulos",
+ "titulos": [
+  {
+   "nome": "Titulo 01 16x9",
+   "aspecto": "16x9",
+   "numero": 1,
+   "fontes": [
+    "Avenir",
+    "Avenir Next"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 02 16x9",
+   "aspecto": "16x9",
+   "numero": 2,
+   "fontes": [
+    "Coolvetica",
+    "Filson Pro"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 03 16x9",
+   "aspecto": "16x9",
+   "numero": 3,
+   "fontes": [
+    "Bello",
+    "DIN Condensed"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 04 16x9",
+   "aspecto": "16x9",
+   "numero": 4,
+   "fontes": [
+    "Arial",
+    "Arial Black"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 05 16x9",
+   "aspecto": "16x9",
+   "numero": 5,
+   "fontes": [
+    "Montserrat",
+    "Times New Roman"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 06 16x9",
+   "aspecto": "16x9",
+   "numero": 6,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 07 16x9",
+   "aspecto": "16x9",
+   "numero": 7,
+   "fontes": [
+    "Apple Garamond",
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 08 16x9",
+   "aspecto": "16x9",
+   "numero": 8,
+   "fontes": [
+    "Arial",
+    "Impact"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 09 16x9",
+   "aspecto": "16x9",
+   "numero": 9,
+   "fontes": [
+    "BasicSansCnd-SemiBoldIt",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 10 16x9",
+   "aspecto": "16x9",
+   "numero": 10,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 11 16x9",
+   "aspecto": "16x9",
+   "numero": 11,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 12 16x9",
+   "aspecto": "16x9",
+   "numero": 12,
+   "fontes": [
+    "Bebas Neue"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 13 16x9",
+   "aspecto": "16x9",
+   "numero": 13,
+   "fontes": [
+    "Boldonse",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 14 16x9",
+   "aspecto": "16x9",
+   "numero": 14,
+   "fontes": [
+    "Coolvetica",
+    "Matiz"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 15 16x9",
+   "aspecto": "16x9",
+   "numero": 15,
+   "fontes": [
+    "Boldonse",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 16 16x9",
+   "aspecto": "16x9",
+   "numero": 16,
+   "fontes": [
+    "BasicSansCnd-SemiBoldIt",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 17 16x9",
+   "aspecto": "16x9",
+   "numero": 17,
+   "fontes": [
+    "Bebas Neue",
+    "DIN Condensed"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 18 16x9",
+   "aspecto": "16x9",
+   "numero": 18,
+   "fontes": [
+    "Coolvetica",
+    "Yourbold"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 19 16x9",
+   "aspecto": "16x9",
+   "numero": 19,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 20 16x9",
+   "aspecto": "16x9",
+   "numero": 20,
+   "fontes": [
+    "Arial",
+    "Atakana Sarif"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 21 16x9",
+   "aspecto": "16x9",
+   "numero": 21,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 22 16x9",
+   "aspecto": "16x9",
+   "numero": 22,
+   "fontes": [
+    "Arial",
+    "Atakana Sarif"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 23 16x9",
+   "aspecto": "16x9",
+   "numero": 23,
+   "fontes": [
+    "Apple Garamond",
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 24 16x9",
+   "aspecto": "16x9",
+   "numero": 24,
+   "fontes": [
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 25 16x9",
+   "aspecto": "16x9",
+   "numero": 25,
+   "fontes": [
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 26 16x9",
+   "aspecto": "16x9",
+   "numero": 26,
+   "fontes": [
+    "Clash Grotesk"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 27 16x9",
+   "aspecto": "16x9",
+   "numero": 27,
+   "fontes": [
+    "Clash Grotesk"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 28 16x9",
+   "aspecto": "16x9",
+   "numero": 28,
+   "fontes": [
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 29 16x9",
+   "aspecto": "16x9",
+   "numero": 29,
+   "fontes": [
+    "Halu"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 30 16x9",
+   "aspecto": "16x9",
+   "numero": 30,
+   "fontes": [
+    "Arial",
+    "Atakana Sarif"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 01 9x16",
+   "aspecto": "9x16",
+   "numero": 1,
+   "fontes": [
+    "Avenir",
+    "Avenir Next"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 02 9x16",
+   "aspecto": "9x16",
+   "numero": 2,
+   "fontes": [
+    "Coolvetica",
+    "Filson Pro"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 03 9x16",
+   "aspecto": "9x16",
+   "numero": 3,
+   "fontes": [
+    "Bello",
+    "DIN Condensed"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 04 9x16",
+   "aspecto": "9x16",
+   "numero": 4,
+   "fontes": [
+    "Arial",
+    "Arial Black"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 05 9x16",
+   "aspecto": "9x16",
+   "numero": 5,
+   "fontes": [
+    "Montserrat",
+    "Times New Roman"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 06 9x16",
+   "aspecto": "9x16",
+   "numero": 6,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 07 9x16",
+   "aspecto": "9x16",
+   "numero": 7,
+   "fontes": [
+    "Apple Garamond",
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 08 9x16",
+   "aspecto": "9x16",
+   "numero": 8,
+   "fontes": [
+    "Arial",
+    "Impact"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 09 9x16",
+   "aspecto": "9x16",
+   "numero": 9,
+   "fontes": [
+    "BasicSansCnd-SemiBoldIt",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 10 9x16",
+   "aspecto": "9x16",
+   "numero": 10,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 11 9x16",
+   "aspecto": "9x16",
+   "numero": 11,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 12 9x16",
+   "aspecto": "9x16",
+   "numero": 12,
+   "fontes": [
+    "Bebas Neue"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 13 9x16",
+   "aspecto": "9x16",
+   "numero": 13,
+   "fontes": [
+    "Boldonse",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 14 9x16",
+   "aspecto": "9x16",
+   "numero": 14,
+   "fontes": [
+    "Coolvetica",
+    "Matiz"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 15 9x16",
+   "aspecto": "9x16",
+   "numero": 15,
+   "fontes": [
+    "Boldonse",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 16 9x16",
+   "aspecto": "9x16",
+   "numero": 16,
+   "fontes": [
+    "BasicSansCnd-SemiBoldIt",
+    "Coolvetica"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 17 9x16",
+   "aspecto": "9x16",
+   "numero": 17,
+   "fontes": [
+    "Bebas Neue",
+    "DIN Condensed"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 18 9x16",
+   "aspecto": "9x16",
+   "numero": 18,
+   "fontes": [
+    "Coolvetica",
+    "Yourbold"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 19 9x16",
+   "aspecto": "9x16",
+   "numero": 19,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 20 9x16",
+   "aspecto": "9x16",
+   "numero": 20,
+   "fontes": [
+    "Arial",
+    "Atakana Sarif"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 21 9x16",
+   "aspecto": "9x16",
+   "numero": 21,
+   "fontes": [
+    "Arial",
+    "Awesome Serif Italic"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 22 9x16",
+   "aspecto": "9x16",
+   "numero": 22,
+   "fontes": [
+    "Arial",
+    "Atakana Sarif"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 23 9x16",
+   "aspecto": "9x16",
+   "numero": 23,
+   "fontes": [
+    "Apple Garamond",
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 24 9x16",
+   "aspecto": "9x16",
+   "numero": 24,
+   "fontes": [
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 25 9x16",
+   "aspecto": "9x16",
+   "numero": 25,
+   "fontes": [
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 26 9x16",
+   "aspecto": "9x16",
+   "numero": 26,
+   "fontes": [
+    "Clash Grotesk"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 27 9x16",
+   "aspecto": "9x16",
+   "numero": 27,
+   "fontes": [
+    "Clash Grotesk"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 28 9x16",
+   "aspecto": "9x16",
+   "numero": 28,
+   "fontes": [
+    "Arial"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 29 9x16",
+   "aspecto": "9x16",
+   "numero": 29,
+   "fontes": [
+    "Halu"
+   ],
+   "miniatura": true
+  },
+  {
+   "nome": "Titulo 30 9x16",
+   "aspecto": "9x16",
+   "numero": 30,
+   "fontes": [
+    "Arial",
+    "Atakana Sarif"
+   ],
+   "miniatura": true
+  }
+ ]
+}

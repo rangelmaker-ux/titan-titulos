@@ -1,0 +1,905 @@
+{
+	Tools = ordered() {
+		TituloPlus30 = MacroOperator {
+			UserControls = ordered() {
+
+			},
+			Inputs = ordered() {
+				MainInput1 = InstanceInput {
+					SourceOp = "SizeAll",
+					Source = "Input"
+				},
+				Input1 = InstanceInput {
+					SourceOp = "Background1_1",
+					Source = "Sep1777749576249",
+					Page = "Controls",
+					Name = "Separator"
+				},
+				Input2 = InstanceInput {
+					SourceOp = "Background1_1",
+					Source = "Msg1777749580115",
+					Page = "Controls",
+					Name = "TEXT 1"
+				},
+				Input3 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "StyledText",
+					Page = "Controls",
+					Name = "Styled Text"
+				},
+				Input4 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "Font",
+					Page = "Controls",
+					Name = "Font",
+					ControlGroup = 1
+				},
+				Input5 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "Style",
+					Page = "Controls",
+					Name = "Style",
+					ControlGroup = 1
+				},
+				Input6 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "Size",
+					Page = "Controls",
+					Name = "Size",
+					Default = 0.2149
+				},
+				Input7 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "Center",
+					Page = "Controls",
+					Name = "Layout Center"
+				},
+				Input8 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "CharacterSpacingClone",
+					Page = "Controls",
+					Name = "Character Spacing",
+					Default = 1
+				},
+				Input9 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "HorizontalJustificationLeft",
+					Page = "Controls",
+					Name = "H Anchor Left",
+					ControlGroup = 2
+				},
+				Input10 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "HorizontalJustificationCenter",
+					Page = "Controls",
+					Name = "H Anchor Center",
+					ControlGroup = 2
+				},
+				Input11 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "HorizontalJustificationRight",
+					Page = "Controls",
+					Name = "H Anchor Right",
+					ControlGroup = 2
+				},
+				Input12 = InstanceInput {
+					SourceOp = "TEXT1",
+					Source = "HorizontalLeftCenterRight",
+					Page = "Controls",
+					Name = "H Anchor",
+					Default = 0
+				},
+				Input13 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "Saturation1",
+					Page = "Controls",
+					Name = "Master Saturation",
+					Default = 1
+				},
+				Input14 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "Hue1",
+					Page = "Controls",
+					Name = "Master Hue",
+					Default = 0
+				},
+				Input15 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "WheelHue1",
+					Page = "Controls",
+					Name = "Master Wheel Hue",
+					ControlGroup = 3,
+					Default = 0
+				},
+				Input16 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "WheelSaturation1",
+					Page = "Controls",
+					Name = "Master Wheel Saturation",
+					ControlGroup = 3,
+					Default = 2
+				},
+				Input17 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "WheelTintAngle1",
+					Page = "Controls",
+					Name = "Master Wheel Tint Angle",
+					ControlGroup = 3,
+					Default = 1.06773991972723
+				},
+				Input18 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "WheelTintLength1",
+					Page = "Controls",
+					Name = "Master Wheel Tint Length",
+					ControlGroup = 3,
+					Default = 1
+				},
+				Input19 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "WheelRangeDummy1",
+					Page = "Controls",
+					Name = "Master Wheel Range",
+					ControlGroup = 3,
+					Default = 0
+				},
+				Input20 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "Sep1777749614466",
+					Page = "Controls",
+					Name = "Separator"
+				},
+				Input21 = InstanceInput {
+					SourceOp = "Cor",
+					Source = "Msg1777749619482",
+					Page = "Controls",
+					Name = "SHINE"
+				},
+				Input22 = InstanceInput {
+					SourceOp = "Shine",
+					Source = "Gain",
+					Page = "Controls",
+					Name = "Shine Intensity",
+					Default = 2
+				},
+				Input23 = InstanceInput {
+					SourceOp = "Shine",
+					Source = "Sep1777749638665",
+					Page = "Controls",
+					Name = "Separator"
+				},
+				Input24 = InstanceInput {
+					SourceOp = "Shine",
+					Source = "Msg1777749645499",
+					Page = "Controls",
+					Name = "TEXT 2"
+				},
+				Input25 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "StyledText",
+					Page = "Controls",
+					Name = "Styled Text"
+				},
+				Input26 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Font",
+					Page = "Controls",
+					Name = "Font",
+					ControlGroup = 4
+				},
+				Input27 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Style",
+					Page = "Controls",
+					Name = "Style",
+					ControlGroup = 4
+				},
+				Input28 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Size",
+					Page = "Controls",
+					Name = "Size",
+					Default = 0.07
+				},
+				Input29 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Center",
+					Page = "Controls",
+					Name = "Layout Center"
+				},
+				Input30 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "CharacterSpacingClone",
+					Page = "Controls",
+					Name = "Character Spacing",
+					Default = 1
+				},
+				Input31 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "HorizontalJustificationLeft",
+					Page = "Controls",
+					Name = "H Anchor Left",
+					ControlGroup = 5
+				},
+				Input32 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "HorizontalJustificationCenter",
+					Page = "Controls",
+					Name = "H Anchor Center",
+					ControlGroup = 5
+				},
+				Input33 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "HorizontalJustificationRight",
+					Page = "Controls",
+					Name = "H Anchor Right",
+					ControlGroup = 5
+				},
+				Input34 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "HorizontalLeftCenterRight",
+					Page = "Controls",
+					Name = "H Anchor",
+					Default = 0
+				},
+				Input35 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Red1Clone",
+					Page = "Controls",
+					Name = "Color1",
+					ControlGroup = 6,
+					Default = 1
+				},
+				Input36 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Green1Clone",
+					Page = "Controls",
+					Name = "Green 1",
+					ControlGroup = 6,
+					Default = 1
+				},
+				Input37 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Blue1Clone",
+					Page = "Controls",
+					Name = "Blue 1",
+					ControlGroup = 6,
+					Default = 1
+				},
+				Input38 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Alpha1Clone",
+					Page = "Controls",
+					Name = "Alpha 1",
+					ControlGroup = 6,
+					Default = 1
+				},
+				Input39 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Sep1777749662366",
+					Page = "Controls",
+					Name = "Separator"
+				},
+				Input40 = InstanceInput {
+					SourceOp = "TEXT2",
+					Source = "Msg1777749667915",
+					Page = "Controls",
+					Name = "SIZE ALL"
+				},
+				Input41 = InstanceInput {
+					SourceOp = "SizeAll",
+					Source = "Size",
+					Page = "Controls",
+					Name = "Size",
+					Default = 1
+				},
+				Input42 = InstanceInput {
+					SourceOp = "SizeAll",
+					Source = "Sep1777749673449",
+					Page = "Controls",
+					Name = "Separator"
+				},
+				Input43 = InstanceInput {
+					SourceOp = "SizeAll",
+					Source = "Msg1777749676331",
+					Page = "Controls",
+					Name = "GLOW"
+				},
+				Input44 = InstanceInput {
+					SourceOp = "GlowAll",
+					Source = "Gain",
+					Page = "Controls",
+					Name = "Glow",
+					Default = 0.551
+				},
+				Input45 = InstanceInput {
+					SourceOp = "GlowAll",
+					Source = "Sep1777749683699",
+					Page = "Controls",
+					Name = "Separator"
+				},
+				Input46 = InstanceInput {
+					SourceOp = "GlowAll",
+					Source = "Msg1777749691065",
+					Page = "Controls",
+					Name = "DROP SHADOW"
+				},
+				Input47 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "shadowStrength",
+					Page = "Controls",
+					Name = "Shadow Strength",
+					Default = 0.5
+				},
+				Input48 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "shadowAngle",
+					Page = "Controls",
+					Name = "Drop Angle",
+					Default = 37.5
+				},
+				Input49 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "ShadowDistance",
+					Page = "Controls",
+					Name = "Drop Distance",
+					Default = 0.0099
+				},
+				Input50 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "shadowBlur",
+					Page = "Controls",
+					Name = "Blur",
+					Default = 0.4
+				},
+				Input51 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "shadowColorRed",
+					Page = "Controls",
+					Name = "Color Red",
+					ControlGroup = 7,
+					Default = 0
+				},
+				Input52 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "shadowColorGreen",
+					Page = "Controls",
+					Name = "Color Green",
+					ControlGroup = 7,
+					Default = 0
+				},
+				Input53 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "shadowColorBlue",
+					Page = "Controls",
+					Name = "Color Blue",
+					ControlGroup = 7,
+					Default = 0
+				},
+				Input56 = InstanceInput {
+					SourceOp = "Dissolve_Out",
+					Source = "OutroEnable",
+					Page = "Controls",
+					Name = "Animação Saída",
+					Default = 1,
+				},
+				Input54 = InstanceInput {
+					SourceOp = "Shadow",
+					Source = "Sep1777749705216",
+					Page = "Controls",
+					Name = "Separator"
+				},
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput {
+					SourceOp = "Dissolve_Out",
+					Source = "Output",
+				}
+			},
+			ViewInfo = GroupInfo { Pos = { 0, 0 } },
+			Tools = ordered() {
+				TimeSpeed_Out = TimeSpeed {
+					Inputs = {
+						GlobalOut = Input { Value = 119, },
+						UseFrameFormatSettings = Input { Value = 1, },
+						Speed = Input { Value = -1, },
+						Input = Input {
+							SourceOp = "SizeAll",
+							Source = "Output",
+						}
+					},
+					ViewInfo = OperatorInfo { Pos = { 880, 41 } },
+				},
+				Dissolve_Out = Dissolve {
+					CtrlWZoom = false,
+					NameSet = true,
+					UserControls = ordered() {
+						OutroEnable = {
+							INPID_InputControl = "CheckboxControl",
+							LINKID_DataType = "Number",
+							INP_Integer = true,
+							INP_Default = 1,
+							LINKS_Name = "Animação Saída",
+							CBC_TriState = false,
+							ICD_Width = 1,
+						}
+					},
+					Inputs = {
+						GlobalOut = Input { Value = 119, },
+						UseFrameFormatSettings = Input { Value = 1, },
+						OutroEnable = Input { Value = 1, },
+						Mix = Input {
+							Value = 0,
+							Expression = "iif(Dissolve_Out.OutroEnable == 1 and (comp.RenderEnd-time)<10, 1, 0)",
+						},
+						Background = Input {
+							SourceOp = "SizeAll",
+							Source = "Output",
+						},
+						Foreground = Input {
+							SourceOp = "TimeSpeed_Out",
+							Source = "Output",
+						}
+					},
+					ViewInfo = OperatorInfo { Pos = { 990, 41 } },
+				},
+Shadow = ofx.com.blackmagicdesign.resolvefx.DropShadow {
+		UserControls = ordered() {
+			Sep1777749705216 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			}
+
+		},
+			NameSet = true,
+			Inputs = {
+				Source = Input {
+					SourceOp = "GlowAll",
+					Source = "Output",
+				},
+				shadowStrength = Input { Value = 0.5, },
+				shadowAngle = Input { Value = 37.5, },
+				ShadowDistance = Input { Value = 0.0099, },
+				shadowBlur = Input { Value = 0.4, },
+				shadowColorRed = Input { Value = 0, },
+				shadowColorGreen = Input { Value = 0, },
+				shadowColorBlue = Input { Value = 0, },
+				isLegacyComp = Input { Value = 0, },
+				blendGroup = Input { Value = 0, },
+				blendIn = Input { Value = 1, },
+				blend = Input { Value = 0, },
+				ignoreContentShape = Input { Value = 0, },
+				legacyIsProcessRGBOnly = Input { Value = 0, },
+				IsNoTemporalFramesReqd = Input { Value = 0, },
+				refreshTrigger = Input { Value = 1, },
+				srcProcessingAlphaMode = Input { Value = 2, },
+				dstProcessingAlphaMode = Input { Value = 2, },
+				resolvefxVersion = Input { Value = "2.0", }
+			},
+			ViewInfo = OperatorInfo { Pos = { 1100, 214.5 } },
+		},
+SizeAll = Transform {
+		UserControls = ordered() {
+			Sep1777749673449 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			},
+			Msg1777749676331 = {
+				INPID_InputControl = "LabelControl",
+				INP_External = false,
+				IC_ControlPage = -1,
+				INP_Passive = true,
+				LINKID_DataType = "Number",
+				LINKS_Name = "GLOW"
+			}
+		},
+			NameSet = true,
+			Inputs = {
+				Input = Input {
+					SourceOp = "Shadow",
+					Source = "Output",
+				}
+			},
+			ViewInfo = OperatorInfo { Pos = { 1265, 214.5 } },
+		},
+GlowAll = SoftGlow {
+		UserControls = ordered() {
+			Sep1777749683699 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			},
+			Msg1777749691065 = {
+				INPID_InputControl = "LabelControl",
+				INP_External = false,
+				IC_ControlPage = -1,
+				INP_Passive = true,
+				LINKID_DataType = "Number",
+				LINKS_Name = "DROP SHADOW"
+			}
+		},
+			NameSet = true,
+			Inputs = {
+				Filter = Input { Value = FuID { "Fast Gaussian" }, },
+				Gain = Input { Value = 0.551, },
+				Input = Input {
+					SourceOp = "Merge1_1",
+					Source = "Output",
+				}
+			},
+			ViewInfo = OperatorInfo { Pos = { 880, 214.5 } },
+		},
+Merge1_1 = Merge {
+			Inputs = {
+				Background = Input {
+					SourceOp = "Merge3_1",
+					Source = "Output",
+				},
+				Foreground = Input {
+					SourceOp = "TEXT2",
+					Source = "Output",
+				},
+				PerformDepthMerge = Input { Value = 0, }
+			},
+			ViewInfo = OperatorInfo { Pos = { 715, 214.5 } },
+			Colors = { TileColor = { R = 0.584313725490196, G = 0.294117647058824, B = 0.803921568627451 }, }
+		},
+TEXT2 = TextPlus {
+		UserControls = ordered() {
+			Sep1777749662366 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			},
+			Msg1777749667915 = {
+				INPID_InputControl = "LabelControl",
+				INP_External = false,
+				IC_ControlPage = -1,
+				INP_Passive = true,
+				LINKID_DataType = "Number",
+				LINKS_Name = "SIZE ALL"
+			}
+		},
+			NameSet = true,
+			CustomData = { Path = { Map = { ["Setting:"] = "Templates:/Edit/Titles/Textos Clube/" } }, },
+			Inputs = {
+				Quality = Input { Value = 5, },
+				ShutterAngle = Input { Value = 80, },
+				GlobalOut = Input { Value = 119, },
+				Width = Input { Value = 1080, },
+				Height = Input { Value = 1920, },
+				UseFrameFormatSettings = Input { Value = 1, },
+				Center = Input { Value = { 0.5, 0.475503128911139 }, },
+				LineSpacing = Input { Value = 0.99, },
+				CharacterSpacing = Input { Value = 0.96, },
+				StyledText = Input {
+					SourceOp = "Follower1_2",
+					Source = "StyledText",
+				},
+				Font = Input { Value = "Arial", },
+				Style = Input { Value = "Regular", },
+				Size = Input { Value = 0.07, },
+				VerticalJustificationNew = Input { Value = 3, },
+				HorizontalJustificationNew = Input { Value = 3, }
+			},
+			ViewInfo = OperatorInfo { Pos = { 715, 181.5 } },
+		},
+Follower1_2 = StyledTextFollower {
+			CtrlWZoom = false,
+			Inputs = {
+				Order = Input { Value = 7, },
+				Delay = Input { Value = 0.5, },
+				Text = Input {
+					Value = StyledText {
+						Value = "master content create the future"
+					},
+				},
+				SelectTransform = Input { Value = 1, },
+				WordOffset = Input {
+					SourceOp = "Path1_8",
+					Source = "Position",
+				},
+				TransformRotation = Input { Value = 1, },
+				Opacity1 = Input {
+					SourceOp = "Follower1_2Opacity1",
+					Source = "Value",
+				},
+				Softness1 = Input { Value = 1, },
+				Softness2 = Input { Value = 1, },
+				Softness3 = Input { Value = 1, },
+				Softness4 = Input { Value = 1, },
+				Softness5 = Input { Value = 1, },
+				Softness6 = Input { Value = 1, },
+				Softness7 = Input { Value = 1, },
+				Softness8 = Input { Value = 1, }
+			},
+		},
+Path1_8 = PolyPath {
+			DrawMode = "InsertAndModify",
+			CtrlWZoom = false,
+			Inputs = {
+				Displacement = Input {
+					SourceOp = "Path1_8Displacement",
+					Source = "Value",
+				},
+				PolyLine = Input {
+					Value = Polyline {
+						Points = {
+							{ Linear = true, LockY = true, X = -0.5, Y = -0.632, RX = 0, RY = 0.044 },
+							{ Linear = true, LockY = true, X = -0.5, Y = -0.5, LX = 0, LY = -0.044 }
+						}
+					},
+				}
+			},
+		},
+Path1_8Displacement = BezierSpline {
+			SplineColor = { Red = 255, Green = 0, Blue = 255 },
+			CtrlWZoom = false,
+			KeyFrames = {
+				[0] = { 0, RH = { 0.108, 0.5556 }, Flags = { LockedY = true } },
+				[6] = { 1, LH = { 4, 1 }, Flags = { LockedY = true } }
+			}
+		},
+Follower1_2Opacity1 = BezierSpline {
+			SplineColor = { Red = 179, Green = 28, Blue = 244 },
+			CtrlWZoom = false,
+			KeyFrames = {
+				[0] = { 0, RH = { 2, 0 } },
+				[6] = { 1, LH = { 4, 1 } }
+			}
+		},
+Merge3_1 = Merge {
+			Inputs = {
+				Background = Input {
+					SourceOp = "Background1_1",
+					Source = "Output",
+				},
+				Foreground = Input {
+					SourceOp = "Shine",
+					Source = "Output",
+				},
+				PerformDepthMerge = Input { Value = 0, }
+			},
+			ViewInfo = OperatorInfo { Pos = { 605, 214.5 } },
+			Colors = { TileColor = { R = 0.584313725490196, G = 0.294117647058824, B = 0.803921568627451 }, }
+		},
+Shine = SoftGlow {
+		UserControls = ordered() {
+			Sep1777749638665 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			},
+			Msg1777749645499 = {
+				INPID_InputControl = "LabelControl",
+				INP_External = false,
+				IC_ControlPage = -1,
+				INP_Passive = true,
+				LINKID_DataType = "Number",
+				LINKS_Name = "TEXT 2"
+			}
+		},
+			NameSet = true,
+			Inputs = {
+				Filter = Input { Value = FuID { "Fast Gaussian" }, },
+				GlowMask = Input {
+					SourceOp = "Rectangle1",
+					Source = "Mask",
+				},
+				Input = Input {
+					SourceOp = "Cor",
+					Source = "Output",
+				}
+			},
+			ViewInfo = OperatorInfo { Pos = { 605, 148.5 } },
+		},
+Cor = ColorCorrector {
+		UserControls = ordered() {
+			Sep1777749614466 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			},
+			Msg1777749619482 = {
+				INPID_InputControl = "LabelControl",
+				INP_External = false,
+				IC_ControlPage = -1,
+				INP_Passive = true,
+				LINKID_DataType = "Number",
+				LINKS_Name = "SHINE"
+			}
+		},
+			CtrlWZoom = false,
+			NameSet = true,
+			Inputs = {
+				WheelSaturation1 = Input { Value = 2, },
+				WheelTintAngle1 = Input { Value = 1.06773991972723, },
+				WheelTintLength1 = Input { Value = 1, },
+				ColorRanges = Input {
+					Value = ColorCurves {
+						Curves = {
+							{
+								Points = {
+									{ 0, 1 },
+									{ 0.4, 0.2 },
+									{ 0.6, 0 },
+									{ 1, 0 }
+								}
+							},
+							{
+								Points = {
+									{ 0, 0 },
+									{ 0.4, 0 },
+									{ 0.6, 0.2 },
+									{ 1, 1 }
+								}
+							}
+						}
+					},
+				},
+				HistogramIgnoreTransparent = Input { Value = 1, },
+				Input = Input {
+					SourceOp = "TEXT1",
+					Source = "Output",
+				}
+			},
+			ViewInfo = OperatorInfo { Pos = { 605, 115.5 } },
+		},
+TEXT1 = TextPlus {
+			NameSet = true,
+			Inputs = {
+				GlobalOut = Input { Value = 119, },
+				Width = Input { Value = 1080, },
+				Height = Input { Value = 1920, },
+				UseFrameFormatSettings = Input { Value = 1, },
+				Center = Input { Value = { 0.5, 0.57 }, },
+				CharacterSpacing = Input { Value = 0.95, },
+				CharacterOffset = Input {
+					SourceOp = "Path1_9",
+					Source = "Position",
+				},
+				Opacity1 = Input {
+					SourceOp = "TEXT1Opacity1",
+					Source = "Value",
+				},
+				Green1 = Input { Value = 0.690196078431373, },
+				Blue1 = Input { Value = 0.141176470588235, },
+				SoftnessX1 = Input { Value = 3, },
+				SoftnessY1 = Input { Value = 3, },
+				SoftnessBlend1 = Input { Value = 0, },
+				StyledText = Input { Value = "THOSE WHO", },
+				Font = Input { Value = "Atakana Sarif", },
+				Style = Input { Value = "Regular", },
+				Size = Input { Value = 0.2149, },
+				VerticalJustificationNew = Input { Value = 3, },
+				HorizontalJustificationNew = Input { Value = 3, }
+			},
+			ViewInfo = OperatorInfo { Pos = { 605, 82.5 } },
+		},
+Path1_9 = PolyPath {
+			DrawMode = "InsertAndModify",
+			CtrlWZoom = false,
+			Inputs = {
+				Displacement = Input {
+					SourceOp = "Path1_9Displacement",
+					Source = "Value",
+				},
+				PolyLine = Input {
+					Value = Polyline {
+						Points = {
+							{ Linear = true, LockY = true, X = -0.5, Y = -0.57, RX = 0, RY = 0.0233333333333334 },
+							{ Linear = true, LockY = true, X = -0.5, Y = -0.5, LX = 0, LY = -0.0233333333333334 }
+						}
+					},
+				}
+			},
+		},
+Path1_9Displacement = BezierSpline {
+			SplineColor = { Red = 255, Green = 0, Blue = 255 },
+			CtrlWZoom = false,
+			KeyFrames = {
+				[0] = { 0, RH = { 0, 0.941999999999999 }, Flags = { LockedY = true } },
+				[20] = { 1, LH = { 10.2, 1 }, Flags = { LockedY = true } }
+			}
+		},
+TEXT1Opacity1 = BezierSpline {
+			SplineColor = { Red = 179, Green = 28, Blue = 244 },
+			CtrlWZoom = false,
+			KeyFrames = {
+				[0] = { 0, RH = { 1.66666666666667, 0 } },
+				[5] = { 1, LH = { 3.33333333333333, 1 } }
+			}
+		},
+Rectangle1 = RectangleMask {
+			Inputs = {
+				Filter = Input { Value = FuID { "Fast Gaussian" }, },
+				SoftEdge = Input { Value = 0.0803, },
+				MaskWidth = Input { Value = 1080, },
+				MaskHeight = Input { Value = 1920, },
+				PixelAspect = Input { Value = { 1, 1 }, },
+				UseFrameFormatSettings = Input { Value = 1, },
+				ClippingMode = Input { Value = FuID { "None" }, },
+				Center = Input {
+					SourceOp = "Path1",
+					Source = "Position",
+				},
+				Width = Input { Value = 0.126, },
+				Angle = Input { Value = -21.8, }
+			},
+			ViewInfo = OperatorInfo { Pos = { 495, 148.5 } },
+			Colors = { TileColor = { R = 0.584313725490196, G = 0.294117647058824, B = 0.803921568627451 }, }
+		},
+Path1 = PolyPath {
+			DrawMode = "InsertAndModify",
+			CtrlWZoom = false,
+			Inputs = {
+				Displacement = Input {
+					SourceOp = "Path1Displacement",
+					Source = "Value",
+				},
+				PolyLine = Input {
+					Value = Polyline {
+						Points = {
+							{ Linear = true, LockY = true, X = 0.741795912004218, Y = 0, RX = -0.505001362614641, RY = 0 },
+							{ Linear = true, LockY = true, X = -0.773208175839706, Y = 0, LX = 0.505001362614641, LY = 0 }
+						}
+					},
+				}
+			},
+		},
+Path1Displacement = BezierSpline {
+			SplineColor = { Red = 255, Green = 0, Blue = 255 },
+			CtrlWZoom = false,
+			KeyFrames = {
+				[1.76363636363634] = { 0, RH = { 31.576, 0.00851781818181818 }, Flags = { LockedY = true } },
+				[55] = { 1, LH = { 25.9116509090909, 1.00851781818182 }, Flags = { LockedY = true } }
+			}
+		},
+Background1_1 = Background {
+		UserControls = ordered() {
+			Sep1777749576249 = {
+				INPID_InputControl = "SeparatorControl",
+				LINKID_DataType = "Number",
+				INP_Integer = true,
+				INP_Passive = true,
+				LINKS_Name = ""
+			},
+			Msg1777749580115 = {
+				INPID_InputControl = "LabelControl",
+				INP_External = false,
+				IC_ControlPage = -1,
+				INP_Passive = true,
+				LINKID_DataType = "Number",
+				LINKS_Name = "TEXT 1"
+			}
+		},
+			Inputs = {
+				GlobalOut = Input { Value = 119, },
+				Width = Input { Value = 1080, },
+				Height = Input { Value = 1920, },
+				UseFrameFormatSettings = Input { Value = 1, },
+				["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" }, },
+				TopLeftAlpha = Input { Value = 0, }
+			},
+			ViewInfo = OperatorInfo { Pos = { 440, 214.5 } },
+			Colors = { TileColor = { R = 0.584313725490196, G = 0.294117647058824, B = 0.803921568627451 }, }
+		}
+			},
+		}
+	},
+	ActiveTool = "TituloPlus30"
+}

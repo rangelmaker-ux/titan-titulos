@@ -23,6 +23,9 @@ import zlib
 REPO = 'rangelmaker-ux/titan-titulos'
 API = 'https://api.github.com/repos/' + REPO + '/releases/latest'
 ASSET = 'Titan-Titles-Studio-Update.zip'
+MODELOS_ASSET = 'Titan-Titulos-Modelos.zip'
+MODELOS_PASTA = 'Titan Titulos'
+MODELO_NOME = re.compile(r'(16x9|9x16)/Titulo \d{2} (?:16x9|9x16)\.(?:setting|png)')
 MAX_BYTES = 32 * 1024 * 1024
 
 def version(value):
@@ -148,7 +151,7 @@ def read_resource_bundle(source):
     return result
 
 def retire_legacy(root,backup):
-    for name in ('Titan Titles Studio.py', 'Titan Titulo Studio.py',
+    for name in ('Titan Studio.py', 'Titan Titles Studio.py', 'Titan Titulo Studio.py',
                  'Titan Titles Studio Backup.py', 'Titan Titulo Studio Backup.py',
                  'Titan Update.py', 'titan_update.py', 'titan_locale.py', 'titan_sfx.py', 'TitanTitlesStudio', 'TitanTitlesStudio-backups'):
         legacy = root / name
@@ -176,7 +179,7 @@ def install_package(path, expected_version, install_root):
     root = root.resolve()
     fusion_root = root.parent.parent
     resources = fusion_root / 'TitanTitlesStudio'
-    targets = {name: root / 'Titan Studio.py' if name == 'Titan Titles Studio.py' else resources / name for name in data}
+    targets = {name: root / 'Titan Titulos.py' if name == 'Titan Titles Studio.py' else resources / name for name in data}
     for target in targets.values():
         if target.resolve() != target.absolute():
             raise ValueError('Arquivo redirecionado; reinstale o plugin.')
@@ -215,6 +218,90 @@ def install_package(path, expected_version, install_root):
         raise
     retire_legacy(root,backup)
     return str(backup)
+
+def modelos_dir(install_root):
+    """Pasta onde o DaVinci Resolve lista os modelos: Effects > Titles > Titan Titulos."""
+    fusion = Path(install_root).absolute().parent.parent
+    return fusion / 'Templates' / 'Edit' / 'Titles' / MODELOS_PASTA
+
+def validate_modelos(path):
+    """Confere o ZIP de modelos sem executar nada: nomes fixos, hashes e nenhum comando de sistema."""
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+        if len(names) != len(set(names)) or sum(i.file_size for i in archive.infolist()) > MAX_BYTES:
+            raise ValueError('Pacote de modelos inválido ou muito grande.')
+        manifest = json.loads(archive.read('manifest.json'))
+        files = manifest.get('files', {})
+        if manifest.get('product') != 'Titan Titulos Modelos' or not files or set(names) != set(files) | {'manifest.json'}:
+            raise ValueError('Conteúdo do pacote de modelos inválido.')
+        data = {}
+        for name, digest in files.items():
+            if not MODELO_NOME.fullmatch(name):
+                raise ValueError('Arquivo não permitido nos modelos.')
+            content = archive.read(name)
+            if hashlib.sha256(content).hexdigest() != digest:
+                raise ValueError('Falha de integridade nos modelos.')
+            if name.endswith('.setting') and (b'os.execute' in content or b'io.popen' in content):
+                raise ValueError('Modelo com comando não permitido.')
+            data[name] = content
+        return manifest.get('version'), data
+
+def install_modelos(path, install_root):
+    version, data = validate_modelos(path)
+    destino = modelos_dir(install_root)
+    if destino.is_symlink():
+        raise ValueError('Pasta de modelos inválida.')
+    for name, content in data.items():
+        target = destino / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        fd, temporary = tempfile.mkstemp(prefix='.titan-', dir=str(target.parent))
+        try:
+            with os.fdopen(fd, 'wb') as output:
+                output.write(content)
+            os.replace(temporary, target)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
+    (destino / 'versao.txt').write_text(str(version), encoding='utf-8')
+    return version
+
+def sync_modelos(install_root, current_version):
+    """Baixa os modelos do release se faltarem ou estiverem desatualizados. Devolve a versão instalada ou None."""
+    try:
+        marca = modelos_dir(install_root) / 'versao.txt'
+        instalada = marca.read_text(encoding='utf-8').strip() if marca.exists() else ''
+        with open_url(API) as response:
+            release = json.loads(response.read(1024 * 1024))
+        assets = {a['name']: a for a in release.get('assets', [])}
+        asset = assets.get(MODELOS_ASSET)
+        if release.get('draft') or release.get('prerelease') or not asset or not re.fullmatch(r'sha256:[0-9a-f]{64}', asset.get('digest') or ''):
+            return None
+        if instalada == release.get('tag_name'):
+            return instalada
+        folder = tempfile.mkdtemp(prefix='titan-modelos-')
+        try:
+            destino = os.path.join(folder, MODELOS_ASSET)
+            with open_url(allowed_url(asset['browser_download_url'])) as response, open(destino, 'wb') as output:
+                digest = hashlib.sha256()
+                total = 0
+                while True:
+                    chunk = response.read(256 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > MAX_BYTES:
+                        raise ValueError('Modelos grandes demais.')
+                    digest.update(chunk)
+                    output.write(chunk)
+            if digest.hexdigest() != asset['digest'][7:]:
+                raise ValueError('Modelos alterados.')
+            install_modelos(destino, install_root)
+            (modelos_dir(install_root) / 'versao.txt').write_text(release.get('tag_name', ''), encoding='utf-8')
+            return release.get('tag_name')
+        finally:
+            shutil.rmtree(folder, ignore_errors=True)
+    except Exception:
+        return None
 
 class Atualizador:
     def __init__(self, install_root, notify=None):

@@ -23,3 +23,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## Modelos de títulos 16x9 e 9x16 (pasta "Titan Titulos")
+
+Os 60 modelos de título animados (30 em 16x9 e 30 em 9x16) vêm da coleção "Títulos Virais Plus",
+criada por Bruno Adson (editordeconteudo.com). Foram incluídos no Titan Títulos com autorização
+confirmada por RangelMaker_. A marca e o botão de divulgação da coleção original foram retirados
+dos arquivos; as animações não foram alteradas. Fontes citadas nos modelos pertencem aos seus
+respectivos autores e não são distribuídas com o Titan.

@@ -2,7 +2,7 @@
 
 O pacote `.pkg` abre no Instalador do macOS, que pede autorização de administrador. Não depende de Python, execução de `.command` pelo Finder ou de cópia manual.
 
-Instala na conta conectada ao Mac. A versão anterior e os scripts antigos conhecidos do Titan são retirados do menu e guardados em Fusion/TitanTitlesStudio-backups. Outros plugins não são selecionados pela limpeza. O pacote pode ser executado novamente; mantém apenas Titan Studio no menu. A instalação tradicional e a edição App Store, quando o container existe, são atendidas.
+Instala na conta conectada ao Mac. A versão anterior e os scripts antigos conhecidos do Titan são retirados do menu e guardados em Fusion/TitanTitlesStudio-backups. Outros plugins não são selecionados pela limpeza. O pacote pode ser executado novamente; mantém apenas Titan Titulos no menu. A instalação tradicional e a edição App Store, quando o container existe, são atendidas.
 
 ## Build
 
