@@ -1053,8 +1053,8 @@ TEXT02 = TextPlus {
 					SourceOp = "Follower1_1_1",
 					Source = "StyledText",
 				},
-				Font = Input { Value = "Awesome Serif Italic", },
-				Style = Input { Value = "Bold Extra Tall", },
+				Font = Input { Value = "Cormorant Garamond", },
+				Style = Input { Value = "Bold Italic", },
 				Size = Input { Value = 0.1984, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

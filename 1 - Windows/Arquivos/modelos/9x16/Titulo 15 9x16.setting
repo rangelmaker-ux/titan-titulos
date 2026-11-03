@@ -695,8 +695,8 @@ TEXT3 = TextPlus {
 					SourceOp = "Follower1_1_1_1",
 					Source = "StyledText",
 				},
-				Font = Input { Value = "Coolvetica", },
-				Style = Input { Value = "Regular", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "Bold", },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
 			},
@@ -988,8 +988,8 @@ TEXT1 = TextPlus {
 					SourceOp = "Follower1_1",
 					Source = "StyledText",
 				},
-				Font = Input { Value = "Coolvetica", },
-				Style = Input { Value = "Regular", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "Bold", },
 				Size = Input { Value = 0.07, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

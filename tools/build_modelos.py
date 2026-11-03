@@ -58,6 +58,32 @@ def remover_bloco(texto, padrao):
     return antes + "\n" + texto[depois:], True
 
 
+# Fontes pagas ou sem licença de redistribuição -> fontes livres parecidas (OFL).
+TROCAS = {
+    ('Coolvetica', 'Regular'): ('Montserrat', 'Bold'),
+    ('Awesome Serif Italic', 'Bold Extra Tall'): ('Cormorant Garamond', 'Bold Italic'),
+    ('Awesome Serif Italic', 'Bold Tall'): ('Cormorant Garamond', 'Bold Italic'),
+    ('Awesome Serif Italic', 'Semi Bold Tall'): ('Cormorant Garamond', 'SemiBold Italic'),
+    ('Atakana Sarif', 'Regular'): ('Cormorant Garamond', 'Medium'),
+    ('BasicSansCnd-SemiBoldIt', 'Italic'): ('Montserrat', 'SemiBold Italic'),
+    ('DIN Condensed', 'Bold'): ('Bebas Neue', 'Bold'),
+    ('Avenir', 'Medium'): ('Montserrat', 'Medium'),
+    ('Avenir Next', 'Bold'): ('Montserrat', 'Bold'),
+    ('Filson Pro', 'Black'): ('Montserrat', 'Black'),
+    ('Bello', 'Script'): ('Cormorant Garamond', 'SemiBold Italic'),
+    ('Halu', 'Regular'): ('Montserrat', 'Regular'),
+    ('Yourbold', 'Demo'): ('Montserrat', 'ExtraBold'),
+}
+
+
+def trocar_fontes(texto):
+    padrao = re.compile(r'Font = Input \{ Value = "([^"]+)", \},(\s*)Style = Input \{ Value = "([^"]+)", \},')
+    def novo(m):
+        fonte, estilo = TROCAS.get((m.group(1), m.group(3)), (m.group(1), m.group(3)))
+        return 'Font = Input { Value = "%s", },%sStyle = Input { Value = "%s", },' % (fonte, m.group(2), estilo)
+    return padrao.sub(novo, texto)
+
+
 def converter(texto, nome_macro):
     n = 0
     # botão do autor (UserControl) e o InstanceInput que o expõe no macro
@@ -71,6 +97,7 @@ def converter(texto, nome_macro):
             n += 1
     texto = re.sub(r"\bTtulo\w*? = MacroOperator", nome_macro + " = MacroOperator", texto, count=1)
     texto = re.sub(r'ActiveTool = "Ttulo\w*"', 'ActiveTool = "%s"' % nome_macro, texto)
+    texto = trocar_fontes(texto)
     return texto, n
 
 

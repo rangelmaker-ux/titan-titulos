@@ -1113,8 +1113,8 @@ TEXT2 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "content create", },
-				Font = Input { Value = "Awesome Serif Italic", },
-				Style = Input { Value = "Bold Extra Tall", },
+				Font = Input { Value = "Cormorant Garamond", },
+				Style = Input { Value = "Bold Italic", },
 				Size = Input { Value = 0.2414, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

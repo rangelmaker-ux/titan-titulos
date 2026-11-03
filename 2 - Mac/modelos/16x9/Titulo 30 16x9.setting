@@ -782,8 +782,8 @@ TEXT1 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "THOSE WHO", },
-				Font = Input { Value = "Atakana Sarif", },
-				Style = Input { Value = "Regular", },
+				Font = Input { Value = "Cormorant Garamond", },
+				Style = Input { Value = "Medium", },
 				Size = Input { Value = 0.2149, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

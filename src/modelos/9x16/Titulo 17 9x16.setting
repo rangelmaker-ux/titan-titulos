@@ -646,7 +646,7 @@ TEXT02 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "FUTURE", },
-				Font = Input { Value = "DIN Condensed", },
+				Font = Input { Value = "Bebas Neue", },
 				Style = Input { Value = "Bold", },
 				Size = Input { Value = 0.2846, },
 				VerticalJustificationNew = Input { Value = 3, },

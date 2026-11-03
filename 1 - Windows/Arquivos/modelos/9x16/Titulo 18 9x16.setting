@@ -552,8 +552,8 @@ TEXT02 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "future", },
-				Font = Input { Value = "Yourbold", },
-				Style = Input { Value = "Demo", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "ExtraBold", },
 				Size = Input { Value = 0.2604, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
@@ -633,8 +633,8 @@ TEXT01 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "CREATE THE", },
-				Font = Input { Value = "Coolvetica", },
-				Style = Input { Value = "Regular", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "Bold", },
 				Size = Input { Value = 0.2031, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }

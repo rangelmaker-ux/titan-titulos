@@ -720,8 +720,8 @@ TEXT03 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "the future", },
-				Font = Input { Value = "BasicSansCnd-SemiBoldIt", },
-				Style = Input { Value = "Italic", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "SemiBold Italic", },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
 			},
@@ -809,8 +809,8 @@ TEXT01 = TextPlus {
 				SoftnessY1 = Input { Value = 3, },
 				SoftnessBlend1 = Input { Value = 0, },
 				StyledText = Input { Value = "those who master", },
-				Font = Input { Value = "BasicSansCnd-SemiBoldIt", },
-				Style = Input { Value = "Italic", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "SemiBold Italic", },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
 			},
@@ -1034,8 +1034,8 @@ TEXT02 = TextPlus {
 					SourceOp = "Follower1_1",
 					Source = "StyledText",
 				},
-				Font = Input { Value = "Coolvetica", },
-				Style = Input { Value = "Regular", },
+				Font = Input { Value = "Montserrat", },
+				Style = Input { Value = "Bold", },
 				Size = Input { Value = 0.1754, },
 				VerticalJustificationNew = Input { Value = 3, },
 				HorizontalJustificationNew = Input { Value = 3, }
