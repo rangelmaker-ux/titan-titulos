@@ -1,3 +1,7 @@
+Novo menu Estilo na aba Legendas: Viral, Apple, Marca Texto e Typewriter, com frases curtas (14 letras por linha), quebra em pontuação, tempo mínimo de tela e sem piscar entre legendas. O ritmo curto vale no modo Comum; nos demais modos o estilo muda só o visual e a animação. "Padrão Titan (atual)" continua selecionado e não muda nada do que você já usa.
+
+Se algum detalhe do estilo não aparecer no seu Resolve, abra Sobre > Abrir logs e me envie: o Titan registra quais ajustes o Text+ não aceitou.
+
 Transcrição: o Titan agora reencontra o motor do Whisper na hora de gerar, tenta uma cópia temporária se o Windows bloquear a pasta e mostra o motivo real em vez de "Reinstale o plugin".
 
 Visual: "Corrigir acesso" e "Abrir logs" foram para dentro do About; o topo ficou mais enxuto (idioma e About, com status e sair logo abaixo).

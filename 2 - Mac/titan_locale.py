@@ -14,6 +14,12 @@ Usar como apoio|Use as supporting text|Usar como apoyo
 Selecione um único texto para definir seu papel.|Select one text to set its role.|Selecciona un único texto para definir su función.
 Papel do texto atualizado. Som somente nos destaques.|Text role updated. Sound only on highlights.|Función del texto actualizada. Sonido solo en destacados.
 Modo de legenda|Caption mode|Modo de subtítulos
+Estilo|Style|Estilo
+Padrão Titan (atual)|Titan default (current)|Titan estándar (actual)
+Viral (contorno grosso + pop)|Viral (thick outline + pop)|Viral (contorno grueso + pop)
+Apple (limpo e suave)|Apple (clean and soft)|Apple (limpio y suave)
+Marca Texto (caixa)|Highlighter (box)|Marcador (caja)
+Typewriter (máquina)|Typewriter|Máquina de escribir
 Comum|Standard|Común
 Dinâmica|Dynamic|Dinámica
 Mista|Mixed|Mixta

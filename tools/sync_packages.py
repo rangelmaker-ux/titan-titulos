@@ -4,6 +4,8 @@ import re
 import shutil
 
 ROOT=Path(__file__).resolve().parents[1]
+import subprocess,sys
+subprocess.check_call([sys.executable,str(ROOT/'tools'/'embed_modules.py')])
 for folder in ('1 - Windows/Arquivos','2 - Mac'):
     for name in ('Titan Titles Studio.py','titan_update.py','titan_locale.py','titan_sfx.py'):
         shutil.copy2(ROOT/'src'/name,ROOT/folder/name)

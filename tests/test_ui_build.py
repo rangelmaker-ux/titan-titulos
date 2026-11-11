@@ -15,6 +15,8 @@ spec=importlib.util.spec_from_file_location('locale_ui_test',ROOT/'src/titan_loc
 locale=importlib.util.module_from_spec(spec);spec.loader.exec_module(locale)
 spec=importlib.util.spec_from_file_location('sfx_ui_test',ROOT/'src/titan_sfx.py')
 sfx_module=importlib.util.module_from_spec(spec);spec.loader.exec_module(sfx_module)
+spec=importlib.util.spec_from_file_location('presets_ui_test',ROOT/'src/titan_presets.py')
+presets_module=importlib.util.module_from_spec(spec);spec.loader.exec_module(presets_module)
 
 class Events:
     def __getattr__(self,name):
@@ -56,7 +58,7 @@ class Build(unittest.TestCase):
                 locale.configure(language);raw=UI()
                 ns={'os':os,'sys':sys,'math':math,'random':random,'ui':locale.UIProxy(raw),'disp':Dispatcher(raw),
                     'fusion':SimpleNamespace(GetData=lambda key:None,SetData=lambda *args:None),
-                    'UI_LANGUAGE':language,'_locale':locale,'tr':locale.translate,'_sound_module':SimpleNamespace(LABELS=sfx_module.LABELS,CHOICES=sfx_module.CHOICES,ANIMATION_SOUNDS=sfx_module.ANIMATION_SOUNDS),
+                    'UI_LANGUAGE':language,'_locale':locale,'_presets_module':presets_module,'tr':locale.translate,'_sound_module':SimpleNamespace(LABELS=sfx_module.LABELS,CHOICES=sfx_module.CHOICES,ANIMATION_SOUNDS=sfx_module.ANIMATION_SOUNDS),
                     '_tv_diag':SimpleNamespace(falha=lambda *args,**kw:None,evento=lambda *args,**kw:None,operacao=lambda *args,**kw:lambda fn:fn),
                     'ICON_URL':str(ROOT/'src/icons'),'SCRIPT_DIR':str(ROOT/'src')}
                 # Safe static globals only; functions/classes are compiled but not
