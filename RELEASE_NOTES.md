@@ -1,3 +1,5 @@
+Windows: o motor de transcrição (Whisper) agora é baixado sozinho na primeira geração de legendas, com barra de progresso, quando não estiver instalado (o erro "motor de transcrição ausente"). O botão Sobre > Corrigir acesso também baixa o que faltar. A primeira vez baixa cerca de 470 MB (modelo); precisa de internet.
+
 Novo menu Estilo na aba Legendas: Viral, Apple, Marca Texto e Typewriter, com frases curtas (14 letras por linha), quebra em pontuação, tempo mínimo de tela e sem piscar entre legendas. O ritmo curto vale no modo Comum; nos demais modos o estilo muda só o visual e a animação. "Padrão Titan (atual)" continua selecionado e não muda nada do que você já usa.
 
 Se algum detalhe do estilo não aparecer no seu Resolve, abra Sobre > Abrir logs e me envie: o Titan registra quais ajustes o Text+ não aceitou.
